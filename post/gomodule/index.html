@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="author" content="Marlon Cabrera Oliveira">
+    <meta name="description" content="Hugo theme using tachyons.io & geomicons.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
+    <link rel="stylesheet" href="/css/tachyons.css">
+    <style>
+        .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
+        body{ font-family:'PT Sans', sans-serif; }
+    </style>
+  </head>
+  <body>
+      <header class="tc pal bb b-near-white">
+    <h1 class="f6 thin i link-child"><a href="/">li 的 Blog</a></h1>
+        <nav>
+          <ul class="list pln">
+            <li class="dib prm"><a href="/"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="/post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="/about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+          </ul>
+        </nav>
+        </header>
+
+
+  <main class="pal">
+
+    <h1>go module 访问私有库 (gitlab@11.10.4)</h1>
+    <h2>Feb 16, 2020</h2>
+      <h2 id="开发环境-配置">开发环境 配置</h2>
+<blockquote>
+<p>推荐 编译环境升级 go 1.13+</p>
+</blockquote>
+<h3 id="启动-gomod-模式">启动 GOMOD 模式</h3>
+<h4 id="设置-go1111module">设置 GO1111MODULE</h4>
+<p><code>go env -w GO111MODULE=on</code></p>
+<h3 id="配置公有库依赖管理">配置公有库依赖管理</h3>
+<h4 id="设置-goproxy">设置 GOPROXY</h4>
+<p><code> go env -w GOPORXY=http://10.30.52.66:3000,direct</code></p>
+<h3 id="配置私有库依赖管理">配置私有库依赖管理</h3>
+<h4 id="设置-goprivate">设置 GOPRIVATE</h4>
+<p><code>go env -w GOPRIVATE=$PRIVATE_REPO_HOST</code></p>
+<h4 id="设置-git-over-https-免密">设置 Git over HTTP(s) 免密</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">touch ~/.git-credentials
+echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">http://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
+echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">https://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
+git config --global credential.helper store
+</code></pre></div><h4 id="optional-针对私有库-为自签名-https-证书">(optional) 针对私有库 为自签名 https 证书</h4>
+<ul>
+<li>
+<p>ubuntu</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cp server.crt /usr/local/share/ca-certificates
+update-ca-certificates
+</code></pre></div><pre><code>
+</code></pre></li>
+<li>
+<p>centos</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cp server.crt /etc/pki/ca-trust/source/anchors
+update-ca-trust
+</code></pre></div><pre><code>
+</code></pre></li>
+<li>
+<p>docker</p>
+<ul>
+<li>根据 baseimage 的 os 设定</li>
+</ul>
+</li>
+</ul>
+<h2 id="编译环境-配置">编译环境 配置</h2>
+<blockquote>
+<p>与 开发环境雷同</p>
+</blockquote>
+<h2 id="附录">附录</h2>
+<h3 id="服务端-gitlab">服务端 gitlab</h3>
+<h4 id="自签名证书">自签名证书</h4>
+<pre><code># 1.生成私钥
+openssl genrsa -out server.key 2048
+# 2.生成 CSR (Certificate Signing Request) commonName 对应被保护的 host
+openssl req -new -key server.key -out server.csr
+# 3.生成自签名证书
+openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt
+</code></pre><h4 id="docker-composeyml">docker-compose.yml</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">web</span>:
+  <span style="color:#66d9ef">image</span>: store/gitlab/gitlab-ce:<span style="color:#ae81ff">11.10</span><span style="color:#ae81ff">.4</span>-ce<span style="color:#ae81ff">.0</span>
+  <span style="color:#66d9ef">restart</span>: always
+  <span style="color:#66d9ef">hostname</span>: <span style="color:#e6db74">&#39;supos.ai&#39;</span>
+  <span style="color:#66d9ef">environment</span>:
+    <span style="color:#66d9ef">GITLAB_OMNIBUS_CONFIG</span>: <span style="color:#e6db74">|
+</span><span style="color:#e6db74">     </span><span style="color:#e6db74"> </span><span style="color:#e6db74">external_url &#39;https://supos.ai&#39;</span>
+      gitlab_rails[<span style="color:#e6db74">&#39;gitlab_shell_ssh_port&#39;</span>] = <span style="color:#ae81ff">2224</span>
+      unicorn[<span style="color:#e6db74">&#39;worker_timeout&#39;</span>] = <span style="color:#ae81ff">60</span>
+      unicorn[<span style="color:#e6db74">&#39;worker_processes&#39;</span>] = <span style="color:#ae81ff">5</span>
+      unicorn[<span style="color:#e6db74">&#39;worker_memory_limit_min&#39;</span>] = <span style="color:#e6db74">&#34;200 * 1 &lt;&lt; 20&#34;</span>
+      unicorn[<span style="color:#e6db74">&#39;worker_memory_limit_max&#39;</span>] = <span style="color:#e6db74">&#34;300 * 1 &lt;&lt; 20&#34;</span>
+      sidekiq[<span style="color:#e6db74">&#39;concurrency&#39;</span>] = <span style="color:#ae81ff">10</span>
+      gitlab_rails[<span style="color:#e6db74">&#39;backup_path&#39;</span>] = <span style="color:#e6db74">&#34;/data/gitlab-backup&#34;</span>
+      gitlab_rails[<span style="color:#e6db74">&#39;backup_keep_time&#39;</span>] = <span style="color:#ae81ff">1296000</span>
+      gitlab_rails[<span style="color:#e6db74">&#39;time_zone&#39;</span>] = <span style="color:#e6db74">&#39;Asia/Shanghai&#39;</span>
+      gitlab_rails[<span style="color:#e6db74">&#39;backup_archive_permissions&#39;</span>] = <span style="color:#ae81ff">0644</span>
+      nginx[<span style="color:#e6db74">&#39;client_max_body_size&#39;</span>] = <span style="color:#e6db74">&#39;10240m&#39;</span>
+      nginx[<span style="color:#e6db74">&#39;enable&#39;</span>] = <span style="color:#66d9ef">true</span>
+      nginx[<span style="color:#e6db74">&#39;http2_enabled&#39;</span>] = <span style="color:#66d9ef">true</span>
+      nginx[<span style="color:#e6db74">&#39;listen_addresses&#39;</span>] = [<span style="color:#e6db74">&#34;0.0.0.0&#34;</span>]
+      <span style="color:#75715e"># nginx[&#39;redirect_http_to_https&#39;] = true</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_certificate_key&#39;</span>] = <span style="color:#e6db74">&#34;/etc/gitlab/certifacations/server.key&#34;</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_certificate&#39;</span>] = <span style="color:#e6db74">&#34;/etc/gitlab/certifacations/server.crt&#34;</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_ciphers&#39;</span>] = <span style="color:#e6db74">&#34;ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256&#34;</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_prefer_server_ciphers&#39;</span>] = <span style="color:#e6db74">&#34;on&#34;</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_protocols&#39;</span>] = <span style="color:#e6db74">&#34;TLSv1.1 TLSv1.2&#34;</span>
+      nginx[<span style="color:#e6db74">&#39;ssl_session_cache&#39;</span>] = <span style="color:#e6db74">&#34;builtin:1000  shared:SSL:10m&#34;</span>
+      postgresql[<span style="color:#e6db74">&#39;max_worker_processes&#39;</span>] = <span style="color:#ae81ff">8</span>
+      postgresql[<span style="color:#e6db74">&#39;shared_buffers&#39;</span>] = <span style="color:#e6db74">&#34;256MB&#34;</span>
+  <span style="color:#66d9ef">ports</span>:
+    - <span style="color:#e6db74">&#39;80:80&#39;</span>
+    - <span style="color:#e6db74">&#39;443:443&#39;</span>
+    - <span style="color:#e6db74">&#39;2224:22&#39;</span>
+  <span style="color:#66d9ef">volumes</span>:
+    - <span style="color:#e6db74">&#39;./gitlab/config:/etc/gitlab&#39;</span>
+    - <span style="color:#e6db74">&#39;./gitlab/logs:/var/log/gitlab&#39;</span>
+    - <span style="color:#e6db74">&#39;./gitlab/data:/var/opt/gitlab&#39;</span>
+</code></pre></div>
+
+  </main>
+
+<footer class="tc center bt b--near-white pvx phm pax-m phxl-l pvx-l">
+        <small class="f5 mw7 db center phm lh-copy">
+          <nav>
+              <ul class="list pln">
+                  <li class="dib prm"><a href="https://www.github.com"><span class="js-geomicon geomicon blue" data-icon="github"></span></a></li>
+              </ul>
+              </nav>
+              Copyright-  2015~2020
+        </small>
+    </footer>
+  </body>
+</html>
+
