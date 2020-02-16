@@ -6,10 +6,19 @@
     <description>Recent content in Posts on li 的 Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Feb 2020 11:33:51 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 16 Feb 2020 11:43:13 +0800</lastBuildDate>
     
 	<atom:link href="http://zhangli2946.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Init</title>
+      <link>http://zhangli2946.github.io/post/init/</link>
+      <pubDate>Sun, 16 Feb 2020 11:43:13 +0800</pubDate>
+      
+      <guid>http://zhangli2946.github.io/post/init/</guid>
+      <description>release: build @cd zhangli2946.github.io &amp;amp;&amp;amp; git add . &amp;amp;&amp;amp; git commit -m &amp;#34;update&amp;#34; &amp;amp;&amp;amp; git push build: hugo -D </description>
+    </item>
     
     <item>
       <title>go module 访问私有库 (gitlab@11.10.4)</title>
