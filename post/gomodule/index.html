@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
-    <link rel="stylesheet" href="/css/tachyons.css">
+    <link rel="stylesheet" href="../../css/tachyons.css">
     <style>
         .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
         body{ font-family:'PT Sans', sans-serif; }
@@ -16,12 +16,12 @@
   </head>
   <body>
       <header class="tc pal bb b-near-white">
-    <h1 class="f6 thin i link-child"><a href="/">li 的 Blog</a></h1>
+    <h1 class="f6 thin i link-child"><a href="../../">li 的 Blog</a></h1>
         <nav>
           <ul class="list pln">
-            <li class="dib prm"><a href="/"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
-            <li class="dib prm"><a href="/post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
-            <li class="dib prm"><a href="/about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+            <li class="dib prm"><a href="../../"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="../../post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="../../about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
           </ul>
         </nav>
         </header>
@@ -46,8 +46,8 @@
 <p><code>go env -w GOPRIVATE=$PRIVATE_REPO_HOST</code></p>
 <h4 id="设置-git-over-https-免密">设置 Git over HTTP(s) 免密</h4>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">touch ~/.git-credentials
-echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">http://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
-echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">https://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
+echo <span style="color:#e6db74">&#34;http://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
+echo <span style="color:#e6db74">&#34;https://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
 git config --global credential.helper store
 </code></pre></div><h4 id="optional-针对私有库-为自签名-https-证书">(optional) 针对私有库 为自签名 https 证书</h4>
 <ul>
@@ -85,12 +85,12 @@ openssl req -new -key server.key -out server.csr
 openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt
 </code></pre><h4 id="docker-composeyml">docker-compose.yml</h4>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">web</span>:
-  <span style="color:#66d9ef">image</span>: store/gitlab/gitlab-ce:<span style="color:#ae81ff">11.10</span><span style="color:#ae81ff">.4</span>-ce<span style="color:#ae81ff">.0</span>
+  <span style="color:#66d9ef">image</span>: store/gitlab/gitlab-ce:<span style="color:#ae81ff">11.10.4</span>-ce<span style="color:#ae81ff">.0</span>
   <span style="color:#66d9ef">restart</span>: always
   <span style="color:#66d9ef">hostname</span>: <span style="color:#e6db74">&#39;supos.ai&#39;</span>
   <span style="color:#66d9ef">environment</span>:
     <span style="color:#66d9ef">GITLAB_OMNIBUS_CONFIG</span>: <span style="color:#e6db74">|
-</span><span style="color:#e6db74">     </span><span style="color:#e6db74"> </span><span style="color:#e6db74">external_url &#39;https://supos.ai&#39;</span>
+</span><span style="color:#e6db74">      external_url &#39;https://supos.ai&#39;</span>
       gitlab_rails[<span style="color:#e6db74">&#39;gitlab_shell_ssh_port&#39;</span>] = <span style="color:#ae81ff">2224</span>
       unicorn[<span style="color:#e6db74">&#39;worker_timeout&#39;</span>] = <span style="color:#ae81ff">60</span>
       unicorn[<span style="color:#e6db74">&#39;worker_processes&#39;</span>] = <span style="color:#ae81ff">5</span>
