@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="author" content="Marlon Cabrera Oliveira">
+    <meta name="description" content="Hugo theme using tachyons.io & geomicons.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
+    <link rel="stylesheet" href="../../css/tachyons.css">
+    <style>
+        .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
+        body{ font-family:'PT Sans', sans-serif; }
+    </style>
+  </head>
+  <body>
+      <header class="tc pal bb b-near-white">
+    <h1 class="f6 thin i link-child"><a href="../../">li 的 Blog</a></h1>
+        <nav>
+          <ul class="list pln">
+            <li class="dib prm"><a href="../../"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="../../post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="../../about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+          </ul>
+        </nav>
+        </header>
+
+
+  <main class="pal">
+
+    <h1>Go Module 与 私有库</h1>
+    <h2>Feb 27, 2020</h2>
+      <p>[200~# go module 与 私有库</p>
+<blockquote>
+<p>由于公司 vcs 设置缘故 项目基本存在于 subgroup 下 且 import 路径也有属于 project 的 subdir
+这就需要公司的 vcs 能够适应 ?go-get=1 访问 subdir 或 subgroup 时能给出正确的 clone 地址</p>
+</blockquote>
+<h2 id="问题背景">问题背景</h2>
+<blockquote>
+<p>公司 vcs 系统使用 gitlab-ce 10.6.5 版本
+源码 module 保存在 subgroup 和 subdir 下
+vcs 没有 https 端点</p>
+</blockquote>
+<h2 id="调查范围">调查范围</h2>
+<ol>
+<li>module get 的工作方式</li>
+<li>gitlab 响应逻辑</li>
+<li>正常工作的必要条件</li>
+<li>认证</li>
+<li>联通</li>
+<li>编译</li>
+</ol>
+<h2 id="实际工作">实际工作</h2>
+<h3 id="服务搭建与配置">服务搭建与配置</h3>
+<h4 id="证书与签名">证书与签名</h4>
+<blockquote>
+<p><a href="https://www.akadia.com/services/ssh_test_certificate.html">英文参考</a></p>
+</blockquote>
+<h5 id="自签名证书">自签名证书</h5>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 1.生成私钥</span>
+$ openssl genrsa -out server.key <span style="color:#ae81ff">2048</span>
+
+<span style="color:#75715e"># 2.生成 CSR (Certificate Signing Request)</span>
+$ openssl req -new -key server.key -out server.csr
+
+<span style="color:#75715e"># 3.生成自签名证书</span>
+$ openssl x509 -req -days <span style="color:#ae81ff">3650</span> -in server.csr -signkey server.key -out server.crt
+</code></pre></div><h5 id="自建-ca-签名证书">自建 CA 签名证书</h5>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 1.创建 CA 私钥</span>
+$ openssl genrsa -out ca.key <span style="color:#ae81ff">2048</span>
+
+<span style="color:#75715e"># 2.生成 CA 的自签名证书</span>
+$ openssl req -new -x509 -days <span style="color:#ae81ff">3650</span> -key ca.key -out ca.crt
+
+<span style="color:#75715e"># 3.生成需要颁发证书的私钥</span>
+$ openssl genrsa -out server.key <span style="color:#ae81ff">2048</span>
+
+<span style="color:#75715e"># 4.生成要颁发证书的证书签名请求，证书签名请求当中的 Common Name 必须区别于 CA 的证书里面的 Common Name</span>
+$ openssl req -new -key server.key -out server.csr
+
+<span style="color:#75715e"># 5.用 2 创建的 CA 证书给 4 生成的 签名请求 进行签名</span>
+$ openssl x509 -req -days <span style="color:#ae81ff">3650</span> -in server.csr -CA ca.crt -CAkey ca.key -set_serial <span style="color:#ae81ff">01</span> -out server.crt
+</code></pre></div><h3 id="工具访问与尝试">工具访问与尝试</h3>
+<h4 id="模拟访问">模拟访问</h4>
+<h5 id="curl-模拟">CURL 模拟</h5>
+<h5 id="postman-模拟">POSTMAN 模拟</h5>
+<h5 id="httpie-模拟">HTTPie 模拟</h5>
+<h4 id="go-mod-访问">go mod 访问</h4>
+<h3 id="源码阅读与分析">源码阅读与分析</h3>
+<h4 id="gitlab-源码-go-middleware-部分">gitlab 源码 Go Middleware 部分</h4>
+<h4 id="go-mod-源码-module-lookup-部分">go mod 源码 Module Lookup 部分</h4>
+<h2 id="总结">总结</h2>
+<h3 id="外部评价">外部评价</h3>
+<h3 id="内部评价">内部评价</h3>
+<h2 id="附录">附录</h2>
+<h3 id="多级证书签名">多级证书签名</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 生成根 CA 并自签（Common Name 填 RootCA）</span>
+$ openssl genrsa -des3 -out keys/RootCA.key <span style="color:#ae81ff">2048</span>
+$ openssl req -new -x509 -days <span style="color:#ae81ff">3650</span> -key keys/RootCA.key -out keys/RootCA.crt
+<span style="color:#75715e"># 生成二级 CA（Common Name 填 SecondCA）</span>
+$ openssl genrsa -des3 -out keys/secondCA.key <span style="color:#ae81ff">2048</span>
+$ openssl rsa -in keys/secondCA.key -out keys/secondCA.key
+$ openssl req -new -days <span style="color:#ae81ff">3650</span> -key keys/secondCA.key -out keys/secondCA.csr
+$ openssl ca -extensions v3_ca -in keys/secondCA.csr -config /etc/pki/tls/openssl.cnf -days <span style="color:#ae81ff">3650</span> -out keys/secondCA.crt -cert keys/RootCA.crt -keyfile keys/RootCA.key
+<span style="color:#75715e"># 生成三级 CA（Common Name 填 ThirdCA）</span>
+$ openssl genrsa -des3 -out keys/thirdCA.key <span style="color:#ae81ff">2048</span>
+$ openssl rsa -in keys/thirdCA.key -out keys/thirdCA.key
+$ openssl req -new -days <span style="color:#ae81ff">3650</span> -key keys/thirdCA.key -out keys/thirdCA.csr
+$ openssl ca -extensions v3_ca -in keys/thirdCA.csr -config /etc/pki/tls/openssl.cnf -days <span style="color:#ae81ff">3650</span> -out keys/thirdCA.crt -cert keys/secondCA.crt -keyfile keys/secondCA.key
+<span style="color:#75715e"># 使用三级 CA 签发服务器证书</span>
+$ openssl genrsa -des3 -out keys/server.key <span style="color:#ae81ff">2048</span>
+$ openssl rsa -in keys/server.key -out keys/server.key
+$ openssl req -new -days <span style="color:#ae81ff">3650</span> -key keys/server.key -out keys/server.csr
+$ openssl ca -in keys/server.csr -config /etc/pki/tls/openssl.cnf -days <span style="color:#ae81ff">3650</span> -out keys/server.crt -cert keys/thirdCA.crt -keyfile keys/thirdCA.key
+</code></pre></div><h3 id="build--x">build -x</h3>
+<blockquote>
+<p>使用 go build -x 能看到更多 go module build 期间更多的细节</p>
+</blockquote>
+<h3 id="go-mod-download">go mod download</h3>
+<blockquote>
+<p>modfetch 使用 BasicAuth 方式将登录信息注入 http 请求 <a href="https://github.com/golang/go/blob/ee04dbf430de4343a3406253a132267bea38d3e6/src/cmd/go/internal/web/http.go#L89">源码&gt;</a>
+auth 信息来源 解析 .netrc <a href="https://github.com/golang/go/blob/ee04dbf430de4343a3406253a132267bea38d3e6/src/cmd/go/internal/auth/auth.go#L12">源码&gt;</a></p>
+</blockquote>
+
+
+  </main>
+
+<footer class="tc center bt b--near-white pvx phm pax-m phxl-l pvx-l">
+        <small class="f5 mw7 db center phm lh-copy">
+          <nav>
+              <ul class="list pln">
+                  <li class="dib prm"><a href="https://www.github.com"><span class="js-geomicon geomicon blue" data-icon="github"></span></a></li>
+              </ul>
+              </nav>
+              Copyright-  2015~2020
+        </small>
+    </footer>
+  </body>
+</html>
+

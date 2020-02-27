@@ -6,10 +6,23 @@
     <description>Recent content in Posts on li 的 Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Feb 2020 11:43:13 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 27 Feb 2020 22:42:30 +0800</lastBuildDate>
     
 	<atom:link href="http://zhangli2946.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go Module 与 私有库</title>
+      <link>http://zhangli2946.github.io/post/go-module-%E4%B8%8E-%E7%A7%81%E6%9C%89%E5%BA%93/</link>
+      <pubDate>Thu, 27 Feb 2020 22:42:30 +0800</pubDate>
+      
+      <guid>http://zhangli2946.github.io/post/go-module-%E4%B8%8E-%E7%A7%81%E6%9C%89%E5%BA%93/</guid>
+      <description>[200~# go module 与 私有库
+ 由于公司 vcs 设置缘故 项目基本存在于 subgroup 下 且 import 路径也有属于 project 的 subdir 这就需要公司的 vcs 能够适应 ?go-get=1 访问 subdir 或 subgroup 时能给出正确的 clone 地址
+ 问题背景  公司 vcs 系统使用 gitlab-ce 10.6.5 版本 源码 module 保存在 subgroup 和 subdir 下 vcs 没有 https 端点
+ 调查范围  module get 的工作方式 gitlab 响应逻辑 正常工作的必要条件 认证 联通 编译  实际工作 服务搭建与配置 证书与签名  英文参考
+ 自签名证书 # 1.</description>
+    </item>
     
     <item>
       <title>Init</title>
