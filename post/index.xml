@@ -17,11 +17,25 @@
       <pubDate>Thu, 27 Feb 2020 22:42:30 +0800</pubDate>
       
       <guid>http://zhangli2946.github.io/post/privaterepo/</guid>
-      <description>[200~# go module 与 私有库
+      <description>go module 与 私有库
  由于公司 vcs 设置缘故 项目基本存在于 subgroup 下 且 import 路径也有属于 project 的 subdir 这就需要公司的 vcs 能够适应 ?go-get=1 访问 subdir 或 subgroup 时能给出正确的 clone 地址
  问题背景  公司 vcs 系统使用 gitlab-ce 10.6.5 版本 源码 module 保存在 subgroup 和 subdir 下 vcs 没有 https 端点
  调查范围  module get 的工作方式 gitlab 响应逻辑 正常工作的必要条件 认证 联通 编译  实际工作 服务搭建与配置 证书与签名  英文参考
- 自签名证书 # 1.</description>
+ 自签名证书 # 1.生成私钥 $ openssl genrsa -out server.</description>
+    </item>
+    
+    <item>
+      <title>Go Module 与 私有库 (二)</title>
+      <link>http://zhangli2946.github.io/post/privaterepo2/</link>
+      <pubDate>Thu, 27 Feb 2020 22:42:30 +0800</pubDate>
+      
+      <guid>http://zhangli2946.github.io/post/privaterepo2/</guid>
+      <description>现状   公司当前使用 GitLab 版本 为 10.6.5
+  使用 Go Module 拉取 GitLab 中 个人目录下的项目 能够正常工作
+  使用 Go Module 拉取 GitLab 中 SubGroup/SubDirect 不能够正常工作
+  go get 解析到的地址为 gitlab.supos.ai/$GROUP/$SUBGROUP 用于拉取项目目录
+  解析到的地址有误 不能进行后续动作
+    问题 背景 go get 查找 repo root 方式 go get -u -v gitlab.supos.ai/supos/datalake/common/log get &amp;#34;gitlab.supos.ai/supos/datalake&amp;#34;: found meta tag get.metaImport{Prefix:&amp;#34;gitlab.supos.ai/supos/datalake&amp;#34;, VCS:&amp;#34;git&amp;#34;, RepoRoot:&amp;#34;http://gitlab.supos.ai/supos/datalake.git&amp;#34;} at //gitlab.supos.ai/supos/datalake?go-get=1 get &amp;#34;gitlab.supos.ai/supos/datalake/common&amp;#34;: found meta tag get.</description>
     </item>
     
     <item>
@@ -43,9 +57,19 @@
  启动 GOMOD 模式 设置 GO1111MODULE go env -w GO111MODULE=on
 配置公有库依赖管理 设置 GOPROXY  go env -w GOPORXY=http://10.30.52.66:3000,direct
 配置私有库依赖管理 设置 GOPRIVATE go env -w GOPRIVATE=$PRIVATE_REPO_HOST
-设置 Git over HTTP(s) 免密 touch ~/.git-credentials echo &amp;#34;http://$PRIVATE_REPO_USERNAME:$$PRIVATE_REPO_TOKEN@$PRIVATE_REPO_HOST&amp;#34; &amp;gt;&amp;gt; ~/.git-credentials echo &amp;#34;https://$PRIVATE_REPO_USERNAME:$$PRIVATE_REPO_TOKEN@$PRIVATE_REPO_HOST&amp;#34; &amp;gt;&amp;gt; ~/.git-credentials git config --global credential.helper store (optional) 针对私有库 为自签名 https 证书   ubuntu
-cp server.crt /usr/local/share/ca-certificates update-ca-certificates    centos
-cp server.crt /etc/pki/ca-trust/source/anchors update-ca-trust    docker</description>
+设置 Git over HTTP(s) 免密  在 gitlab 注册后从 web 界面 获取 acceess token (编译环境 选只读; 开发环境 选读写) 通过 下述方式 进行免密配置后 不需要进行 ssh 证书添加
+ touch ~/.git-credentials echo &amp;#34;http://$PRIVATE_REPO_USERNAME:$$PRIVATE_REPO_TOKEN@$PRIVATE_REPO_HOST&amp;#34; &amp;gt;&amp;gt; ~/.git-credentials echo &amp;#34;https://$PRIVATE_REPO_USERNAME:$$PRIVATE_REPO_TOKEN@$PRIVATE_REPO_HOST&amp;#34; &amp;gt;&amp;gt; ~/.git-credentials git config --global credential.</description>
+    </item>
+    
+    <item>
+      <title>使用 prometheus 监控应用性能</title>
+      <link>http://zhangli2946.github.io/post/metrics/</link>
+      <pubDate>Sun, 16 Feb 2020 11:33:51 +0800</pubDate>
+      
+      <guid>http://zhangli2946.github.io/post/metrics/</guid>
+      <description>引入： Pull 模型的服务监控 Pull 模型  由 Prometheus 向所有已知的 target 发送 http get $HOST:$PORT/metrics
+   http get prometheus:9090/metrics
+# HELP prometheus_tsdb_wal_page_flushes_total Total number of page flushes. # TYPE prometheus_tsdb_wal_page_flushes_total counter prometheus_tsdb_wal_page_flushes_total 5759 # HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code. # TYPE promhttp_metric_handler_requests_total counter promhttp_metric_handler_requests_total{code=&amp;#34;200&amp;#34;} 1134 promhttp_metric_handler_requests_total{code=&amp;#34;500&amp;#34;} 0 promhttp_metric_handler_requests_total{code=&amp;#34;503&amp;#34;} 0 # HELP promhttp_metric_handler_requests_in_flight Current number of scrapes being served. # TYPE promhttp_metric_handler_requests_in_flight gauge promhttp_metric_handler_requests_in_flight 1 # HELP prometheus_tsdb_wal_truncate_duration_seconds Duration of WAL truncation.</description>
     </item>
     
   </channel>

@@ -45,10 +45,21 @@
 <h4 id="设置-goprivate">设置 GOPRIVATE</h4>
 <p><code>go env -w GOPRIVATE=$PRIVATE_REPO_HOST</code></p>
 <h4 id="设置-git-over-https-免密">设置 Git over HTTP(s) 免密</h4>
+<blockquote>
+<p>在 gitlab 注册后从 web 界面 获取 acceess token (编译环境 选只读; 开发环境 选读写)
+通过 下述方式 进行免密配置后 不需要进行 ssh 证书添加</p>
+</blockquote>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">touch ~/.git-credentials
 echo <span style="color:#e6db74">&#34;http://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
 echo <span style="color:#e6db74">&#34;https://</span>$PRIVATE_REPO_USERNAME<span style="color:#e6db74">:</span>$$<span style="color:#e6db74">PRIVATE_REPO_TOKEN@</span>$PRIVATE_REPO_HOST<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.git-credentials
 git config --global credential.helper store
+</code></pre></div><h4 id="设置-module-命令认证信息">设置 Module 命令认证信息</h4>
+<blockquote>
+<p>go mod 命令的认证信息 仅能从 主机登陆协议配置 $HOME/.netrc 中获取</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cat &gt;&gt; $HOME/.netrc <span style="color:#e6db74">&lt;&lt; EOF
+</span><span style="color:#e6db74">machine gitlab.supos.ai login $USERNAME password $ACCESS_TOKEN
+</span><span style="color:#e6db74">EOF</span>
 </code></pre></div><h4 id="optional-针对私有库-为自签名-https-证书">(optional) 针对私有库 为自签名 https 证书</h4>
 <ul>
 <li>
@@ -135,6 +146,10 @@ openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt
               </nav>
               Copyright-  2015~2020
         </small>
+		 	<div style="width:300px;margin:0 auto; padding:20px 0;">
+		 		<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010802010694" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010802010694号</p></a>
+		 	</div>
+		 
     </footer>
   </body>
 </html>

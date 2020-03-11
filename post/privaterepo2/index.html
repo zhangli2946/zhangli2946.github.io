@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="author" content="Marlon Cabrera Oliveira">
+    <meta name="description" content="Hugo theme using tachyons.io & geomicons.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
+    <link rel="stylesheet" href="../../css/tachyons.css">
+    <style>
+        .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
+        body{ font-family:'PT Sans', sans-serif; }
+    </style>
+  </head>
+  <body>
+      <header class="tc pal bb b-near-white">
+    <h1 class="f6 thin i link-child"><a href="../../">li 的 Blog</a></h1>
+        <nav>
+          <ul class="list pln">
+            <li class="dib prm"><a href="../../"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="../../post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="../../about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+          </ul>
+        </nav>
+        </header>
+
+
+  <main class="pal">
+
+    <h1>Go Module 与 私有库 (二)</h1>
+    <h2>Feb 27, 2020</h2>
+      <h2 id="现状">现状</h2>
+<ul>
+<li>
+<p>公司当前使用 GitLab 版本 为 10.6.5</p>
+</li>
+<li>
+<p>使用 Go Module 拉取 GitLab 中 个人目录下的项目 能够正常工作</p>
+</li>
+<li>
+<p>使用 Go Module 拉取 GitLab 中 SubGroup/SubDirect 不能够正常工作</p>
+<ul>
+<li>
+<p>go get 解析到的地址为 gitlab.supos.ai/$GROUP/$SUBGROUP 用于拉取项目目录</p>
+</li>
+<li>
+<p>解析到的地址有误 不能进行后续动作</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="问题">问题</h2>
+<h3 id="背景">背景</h3>
+<h4 id="go-get-查找-repo-root-方式">go get 查找 repo root 方式</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">go get -u -v gitlab.supos.ai/supos/datalake/common/log
+get <span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake&#34;</span>: found meta tag get.metaImport<span style="color:#f92672">{</span>Prefix:<span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake&#34;</span>, VCS:<span style="color:#e6db74">&#34;git&#34;</span>, RepoRoot:<span style="color:#e6db74">&#34;http://gitlab.supos.ai/supos/datalake.git&#34;</span><span style="color:#f92672">}</span> at //gitlab.supos.ai/supos/datalake?go-get<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+get <span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake/common&#34;</span>: found meta tag get.metaImport<span style="color:#f92672">{</span>Prefix:<span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake/common&#34;</span>, VCS:<span style="color:#e6db74">&#34;git&#34;</span>, RepoRoot:<span style="color:#e6db74">&#34;http://gitlab.supos.ai/supos/datalake/common.git&#34;</span><span style="color:#f92672">}</span> at //gitlab.supos.ai/supos/datalake/common?go-get<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+get <span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake/common/log&#34;</span>: found meta tag get.metaImport<span style="color:#f92672">{</span>Prefix:<span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake/common&#34;</span>, VCS:<span style="color:#e6db74">&#34;git&#34;</span>, RepoRoot:<span style="color:#e6db74">&#34;http://gitlab.supos.ai/supos/datalake/common.git&#34;</span><span style="color:#f92672">}</span> at //gitlab.supos.ai/supos/datalake/common/log?go-get<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+get <span style="color:#e6db74">&#34;gitlab.supos.ai/supos/datalake/common/log&#34;</span>: verifying non-authoritative meta tag
+go: finding gitlab.supos.ai/supos/datalake/common/log latest
+gitlab.supos.ai/supos/datalake/common/log
+</code></pre></div><ul>
+<li>由 log 可见 查找 repo root 的过程是根据 路径级别 递归查找</li>
+<li>当进入 repo 的 subdir 时 返回的 RepoRoot 仍旧指向 repo 而非 其 subdir</li>
+</ul>
+<h4 id="go-get-携带认证信息的方式">go get 携带认证信息的方式</h4>
+<p><a href="https://github.com/golang/go/blob/release-branch.go1.13/src/cmd/go/internal/auth/auth.go#L17" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Copyright 2019 The Go Authors. All rights reserved.
+</span><span style="color:#75715e">// Use of this source code is governed by a BSD-style
+</span><span style="color:#75715e">// license that can be found in the LICENSE file.
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// Package auth provides access to user-provided authentication credentials.
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">auth</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;net/http&#34;</span>
+
+<span style="color:#75715e">// AddCredentials fills in the user&#39;s credentials for req, if any.
+</span><span style="color:#75715e">// The return value reports whether any matching credentials were found.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddCredentials</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">added</span> <span style="color:#66d9ef">bool</span>) {
+	<span style="color:#75715e">// TODO(golang.org/issue/26232): Support arbitrary user-provided credentials.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">netrcOnce</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">readNetrc</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">l</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">netrc</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">machine</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Host</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">SetBasicAuth</span>(<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">login</span>, <span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">password</span>)
+			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+		}
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+}
+</code></pre></div><p><a href="https://github.com/golang/go/blob/6bf4b230234171f1cc4edab8e3eb2a989a02ddee/src/net/http/request.go#L959:19" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Request</span>) <span style="color:#a6e22e">SetBasicAuth</span>(<span style="color:#a6e22e">username</span>, <span style="color:#a6e22e">password</span> <span style="color:#66d9ef">string</span>) {
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Authorization&#34;</span>, <span style="color:#e6db74">&#34;Basic &#34;</span><span style="color:#f92672">+</span><span style="color:#a6e22e">basicAuth</span>(<span style="color:#a6e22e">username</span>, <span style="color:#a6e22e">password</span>))
+}
+</code></pre></div><p><a href="https://github.com/golang/go/blob/6bf4b230234171f1cc4edab8e3eb2a989a02ddee/src/net/http/client.go#L341:6" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">basicAuth</span>(<span style="color:#a6e22e">username</span>, <span style="color:#a6e22e">password</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">auth</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">username</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">password</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>([]byte(<span style="color:#a6e22e">auth</span>))
+}
+</code></pre></div><h4 id="gitlab-处理-go-get1-请求的逻辑">GitLab 处理 ?go-get=1 请求的逻辑</h4>
+<p><a href="https://gitlab.com/gitlab-org/gitlab-foss/blob/v10.6.5/lib/gitlab/middleware/go.rb#L25" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">project_path</span>(request)
+		<span style="color:#f92672">...</span>
+        <span style="color:#75715e"># We see if a project exists with any of these potential paths</span>
+        project <span style="color:#f92672">=</span> project_for_paths(project_paths, request)
+
+        <span style="color:#66d9ef">if</span> project
+          <span style="color:#75715e"># If a project is found and the user has access, we return the full project path</span>
+          project<span style="color:#f92672">.</span>full_path
+        <span style="color:#66d9ef">else</span>
+          <span style="color:#75715e"># If not, we return the first two components as if it were a simple `namespace/project` path,</span>
+          <span style="color:#75715e"># so that we don&#39;t reveal the existence of a nested project the user doesn&#39;t have access to.</span>
+          <span style="color:#75715e"># This means that for an unauthenticated request to `group/subgroup/project/subpackage`</span>
+          <span style="color:#75715e"># for a private `group/subgroup/project` with subpackage path `subpackage`, GitLab will respond</span>
+          <span style="color:#75715e"># as if the user is looking for project `group/subgroup`, with subpackage path `project/subpackage`.</span>
+          <span style="color:#75715e"># Since `go get` doesn&#39;t authenticate by default, this means that</span>
+          <span style="color:#75715e"># `go get gitlab.com/group/subgroup/project/subpackage` will not work for private projects.</span>
+          <span style="color:#75715e"># `go get gitlab.com/group/subgroup/project.git/subpackage` will work, since Go is smart enough</span>
+          <span style="color:#75715e"># to figure that out. `import &#39;gitlab.com/...&#39;` behaves the same as `go get`.</span>
+          simple_project_path
+        <span style="color:#66d9ef">end</span>
+      <span style="color:#66d9ef">end</span>
+
+      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">project_for_paths</span>(paths, request)
+        project <span style="color:#f92672">=</span> <span style="color:#66d9ef">Project</span><span style="color:#f92672">.</span>where_full_path_in(paths)<span style="color:#f92672">.</span>first
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> <span style="color:#66d9ef">Ability</span><span style="color:#f92672">.</span>allowed?(current_user(request), <span style="color:#e6db74">:read_project</span>, project)
+
+        project
+      <span style="color:#66d9ef">end</span>
+
+      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">current_user</span>(request)
+        authenticator <span style="color:#f92672">=</span> <span style="color:#66d9ef">Gitlab</span><span style="color:#f92672">::</span><span style="color:#66d9ef">Auth</span><span style="color:#f92672">::</span><span style="color:#66d9ef">RequestAuthenticator</span><span style="color:#f92672">.</span>new(request)
+        user <span style="color:#f92672">=</span> authenticator<span style="color:#f92672">.</span>find_user_from_access_token <span style="color:#f92672">||</span> authenticator<span style="color:#f92672">.</span>find_user_from_warden
+
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> user<span style="color:#f92672">&amp;.</span>can?(<span style="color:#e6db74">:access_api</span>)
+
+        <span style="color:#75715e"># Right now, the `api` scope is the only one that should be able to determine private project existence.</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> authenticator<span style="color:#f92672">.</span>valid_access_token?(<span style="color:#e6db74">scopes</span>: <span style="color:#f92672">[</span><span style="color:#e6db74">:api</span><span style="color:#f92672">]</span>)
+
+        user
+      <span style="color:#66d9ef">end</span>
+</code></pre></div><p><a href="https://gitlab.com/gitlab-org/gitlab-foss/blob/v10.6.5/lib/gitlab/auth/request_authenticator.rb#L24" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">
+      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">valid_access_token?</span>(<span style="color:#e6db74">scopes</span>: <span style="color:#f92672">[]</span>)
+        validate_access_token!(<span style="color:#e6db74">scopes</span>: scopes)
+</code></pre></div><p><a href="https://gitlab.com/gitlab-org/gitlab-foss/blob/v10.6.5/lib/gitlab/auth/user_auth_finders.rb#L49" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">validate_access_token!</span>(<span style="color:#e6db74">scopes</span>: <span style="color:#f92672">[]</span>)
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> access_token
+</code></pre></div><p><a href="https://gitlab.com/gitlab-org/gitlab-foss/blob/v10.6.5/lib/gitlab/auth/user_auth_finders.rb#L64" title="源码位置">源码位置</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">access_token</span>
+        strong_memoize(<span style="color:#e6db74">:access_token</span>) <span style="color:#66d9ef">do</span>
+          find_oauth_access_token <span style="color:#f92672">||</span> find_personal_access_token
+        <span style="color:#66d9ef">end</span>
+      <span style="color:#66d9ef">end</span>
+
+      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find_personal_access_token</span>
+        token <span style="color:#f92672">=</span>
+          current_request<span style="color:#f92672">.</span>params<span style="color:#f92672">[</span><span style="color:#66d9ef">PRIVATE_TOKEN_PARAM</span><span style="color:#f92672">].</span>presence <span style="color:#f92672">||</span>
+          current_request<span style="color:#f92672">.</span>env<span style="color:#f92672">[</span><span style="color:#66d9ef">PRIVATE_TOKEN_HEADER</span><span style="color:#f92672">].</span>presence
+
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> token
+
+        <span style="color:#75715e"># Expiration, revocation and scopes are verified in `validate_access_token!`</span>
+        <span style="color:#66d9ef">PersonalAccessToken</span><span style="color:#f92672">.</span>find_by(<span style="color:#e6db74">token</span>: token) <span style="color:#f92672">||</span> <span style="color:#66d9ef">raise</span>(<span style="color:#66d9ef">UnauthorizedError</span>)
+      <span style="color:#66d9ef">end</span>
+
+      <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find_oauth_access_token</span>
+        token <span style="color:#f92672">=</span> <span style="color:#66d9ef">Doorkeeper</span><span style="color:#f92672">::</span><span style="color:#66d9ef">OAuth</span><span style="color:#f92672">::</span><span style="color:#66d9ef">Token</span><span style="color:#f92672">.</span>from_request(current_request, <span style="color:#f92672">*</span><span style="color:#66d9ef">Doorkeeper</span><span style="color:#f92672">.</span>configuration<span style="color:#f92672">.</span>access_token_methods)
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">unless</span> token
+
+        <span style="color:#75715e"># Expiration, revocation and scopes are verified in `validate_access_token!`</span>
+        oauth_token <span style="color:#f92672">=</span> <span style="color:#66d9ef">OauthAccessToken</span><span style="color:#f92672">.</span>by_token(token)
+        <span style="color:#66d9ef">raise</span> <span style="color:#66d9ef">UnauthorizedError</span> <span style="color:#66d9ef">unless</span> oauth_token
+
+        oauth_token<span style="color:#f92672">.</span>revoke_previous_refresh_token!
+        oauth_token
+      <span style="color:#66d9ef">end</span>
+</code></pre></div><h4 id="gitlab-1065-go-midware-行为">GitLab 10.6.5 Go Midware 行为</h4>
+<ul>
+<li>通过 project_path 递归查找 找到完整路径</li>
+<li>返回 正确路径的条件时 能够找到 repo root 且认证通过 由权访问该 repo</li>
+</ul>
+<h3 id="根因">根因</h3>
+<ul>
+<li>由背景 知道
+<ul>
+<li>go get 走 basicauth 携带认证信息</li>
+<li>gitlab 用 PRIVATE_TOKEN 获得认证信息</li>
+<li>认证信息决定能否获得正确路径</li>
+</ul>
+</li>
+<li>故而的出无法使用的原因 &mdash;&ndash; 认证信息传递中断</li>
+</ul>
+
+
+  </main>
+
+<footer class="tc center bt b--near-white pvx phm pax-m phxl-l pvx-l">
+        <small class="f5 mw7 db center phm lh-copy">
+          <nav>
+              <ul class="list pln">
+                  <li class="dib prm"><a href="https://www.github.com"><span class="js-geomicon geomicon blue" data-icon="github"></span></a></li>
+              </ul>
+              </nav>
+              Copyright-  2015~2020
+        </small>
+		 	<div style="width:300px;margin:0 auto; padding:20px 0;">
+		 		<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010802010694" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010802010694号</p></a>
+		 	</div>
+		 
+    </footer>
+  </body>
+</html>
+

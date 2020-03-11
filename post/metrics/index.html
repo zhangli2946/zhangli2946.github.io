@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="author" content="Marlon Cabrera Oliveira">
+    <meta name="description" content="Hugo theme using tachyons.io & geomicons.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
+    <link rel="stylesheet" href="../../css/tachyons.css">
+    <style>
+        .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
+        body{ font-family:'PT Sans', sans-serif; }
+    </style>
+  </head>
+  <body>
+      <header class="tc pal bb b-near-white">
+    <h1 class="f6 thin i link-child"><a href="../../">li 的 Blog</a></h1>
+        <nav>
+          <ul class="list pln">
+            <li class="dib prm"><a href="../../"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="../../post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="../../about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+          </ul>
+        </nav>
+        </header>
+
+
+  <main class="pal">
+
+    <h1>使用 prometheus 监控应用性能</h1>
+    <h2>Feb 16, 2020</h2>
+      <h2 id="引入-pull-模型的服务监控">引入： Pull 模型的服务监控</h2>
+<p><img src="https://camo.githubusercontent.com/78b3b29d22cea8eee673e34fd204818ea532c171/68747470733a2f2f63646e2e6a7364656c6976722e6e65742f67682f70726f6d6574686575732f70726f6d65746865757340633334323537643036396336333036383564613335626365663038343633326666643564363230392f646f63756d656e746174696f6e2f696d616765732f6172636869746563747572652e737667" alt="Prometheus 生态"></p>
+<h3 id="pull-模型">Pull 模型</h3>
+<blockquote>
+<p>由 Prometheus 向所有已知的 target 发送 http get $HOST:$PORT/metrics</p>
+</blockquote>
+<ul>
+<li>
+<p>http get prometheus:9090/metrics</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># HELP prometheus_tsdb_wal_page_flushes_total Total number of page flushes.</span>
+<span style="color:#75715e"># TYPE prometheus_tsdb_wal_page_flushes_total counter</span>
+prometheus_tsdb_wal_page_flushes_total <span style="color:#ae81ff">5759</span>
+<span style="color:#75715e"># HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.</span>
+<span style="color:#75715e"># TYPE promhttp_metric_handler_requests_total counter</span>
+promhttp_metric_handler_requests_total<span style="color:#f92672">{</span>code<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;200&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">1134</span>
+promhttp_metric_handler_requests_total<span style="color:#f92672">{</span>code<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;500&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+promhttp_metric_handler_requests_total<span style="color:#f92672">{</span>code<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;503&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+<span style="color:#75715e"># HELP promhttp_metric_handler_requests_in_flight Current number of scrapes being served.</span>
+<span style="color:#75715e"># TYPE promhttp_metric_handler_requests_in_flight  gauge</span>
+promhttp_metric_handler_requests_in_flight <span style="color:#ae81ff">1</span>
+<span style="color:#75715e"># HELP prometheus_tsdb_wal_truncate_duration_seconds Duration of WAL truncation.</span>
+<span style="color:#75715e"># TYPE prometheus_tsdb_wal_truncate_duration_seconds summary</span>
+prometheus_tsdb_wal_truncate_duration_seconds<span style="color:#f92672">{</span>quantile<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0.5&#34;</span><span style="color:#f92672">}</span> NaN
+prometheus_tsdb_wal_truncate_duration_seconds<span style="color:#f92672">{</span>quantile<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0.9&#34;</span><span style="color:#f92672">}</span> NaN
+prometheus_tsdb_wal_truncate_duration_seconds<span style="color:#f92672">{</span>quantile<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0.99&#34;</span><span style="color:#f92672">}</span> NaN
+prometheus_tsdb_wal_truncate_duration_seconds_sum <span style="color:#ae81ff">0</span>
+prometheus_tsdb_wal_truncate_duration_seconds_count <span style="color:#ae81ff">0</span>
+prometheus_tsdb_wal_truncations_total <span style="color:#ae81ff">0</span>
+<span style="color:#75715e"># HELP prometheus_tsdb_compaction_chunk_range_seconds Final time range</span> 
+<span style="color:#75715e"># TYPE prometheus_tsdb_compaction_chunk_range_seconds histogram</span>
+prometheus_tsdb_compaction_chunk_range_seconds_bucket<span style="color:#f92672">{</span>le<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;102400&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">1</span>
+prometheus_tsdb_compaction_chunk_range_seconds_bucket<span style="color:#f92672">{</span>le<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.6384e+06&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">594</span>
+prometheus_tsdb_compaction_chunk_range_seconds_bucket<span style="color:#f92672">{</span>le<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;6.5536e+06&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">2838</span>
+prometheus_tsdb_compaction_chunk_range_seconds_bucket<span style="color:#f92672">{</span>le<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;+Inf&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">2838</span>
+prometheus_tsdb_compaction_chunk_range_seconds_sum 4.489241e+09
+prometheus_tsdb_compaction_chunk_range_seconds_count <span style="color:#ae81ff">2838</span>
+</code></pre></div></li>
+</ul>
+<h3 id="可视化效果">可视化效果</h3>
+<ul>
+<li>
+<p><a href="http://192.168.11.98:3000">grafana</a></p>
+</li>
+<li>
+<p><a href="http://192.168.11.98:9090/graph">prometheus</a></p>
+</li>
+</ul>
+<h2 id="数据类型-与-指标定义">数据类型 与 指标定义</h2>
+<h3 id="数据类型">数据类型</h3>
+<ul>
+<li>
+<p>计数器</p>
+<ul>
+<li>单调增加</li>
+</ul>
+</li>
+<li>
+<p>示数器</p>
+<ul>
+<li>随意增减</li>
+</ul>
+</li>
+<li>
+<p>分布</p>
+<ul>
+<li>分段统计 <!-- raw HTML omitted -->_bucket{le=&quot;<!-- raw HTML omitted -->&rdquo;}</li>
+<li>计量 <!-- raw HTML omitted -->_sum</li>
+<li>计数 <!-- raw HTML omitted -->_count</li>
+</ul>
+</li>
+<li>
+<p>摘要</p>
+<ul>
+<li>分位统计 <!-- raw HTML omitted -->{quantile=&quot;&lt;φ&gt;&rdquo;}</li>
+<li>计量 <!-- raw HTML omitted -->_sum</li>
+<li>计数 <!-- raw HTML omitted -->_count</li>
+</ul>
+</li>
+</ul>
+<h3 id="指标定义">指标定义</h3>
+<h4 id="示例-apdex-score">示例： Apdex score</h4>
+<blockquote>
+<p><a href="https://prometheus.io/docs/practices/histograms/#apdex-score">原文</a></p>
+</blockquote>
+<ul>
+<li>
+<p>Apdex 定义了应用响应时间的最优门槛为 T，另外根据应用响应时间结合 T 定义了三种不同的性能表现：</p>
+<ul>
+<li>
+<p>Satisfied（满意）：应用响应时间低于或等于 T（T 由性能评估人员根据预期性能要求确定），比如 T 为 1.5s，则一个耗时 1s 的响应结果则可以认为是 satisfied 的。</p>
+</li>
+<li>
+<p>Tolerating（可容忍）：应用响应时间大于 T，但同时小于或等于 4T。假设应用设定的 T 值为 1s，则 4 * 1 = 4 秒极为应用响应时间的容忍上限。</p>
+</li>
+<li>
+<p>Frustrated（烦躁期）：应用响应时间大于 4T</p>
+</li>
+</ul>
+</li>
+<li>
+<p>公式</p>
+<ul>
+<li>Apdex<!-- raw HTML omitted -->t<!-- raw HTML omitted --> = (Satisfied Count + Tolerating Count / 2) / Total Samples</li>
+</ul>
+</li>
+</ul>
+<h3 id="讨论-指标与评价标准">讨论： 指标与评价标准</h3>
+<h4 id="示例-指标">示例： 指标</h4>
+<ul>
+<li>
+<p>计算类别</p>
+<ul>
+<li>请求率</li>
+<li>错误率</li>
+<li>延迟</li>
+<li>饱和率</li>
+<li>利用率</li>
+</ul>
+</li>
+<li>
+<p>输入类别</p>
+<ul>
+<li>内外部调用</li>
+<li>关键对象创建销毁</li>
+<li>请求接收与响应</li>
+<li>内部错误</li>
+<li>关键路径</li>
+</ul>
+</li>
+<li>
+<p>计算类别 与 输入类别 正交得到相关类别的评价</p>
+</li>
+</ul>
+<h4 id="service-埋点颗粒度">service 埋点颗粒度</h4>
+<ul>
+<li>
+<p>machine</p>
+</li>
+<li>
+<p>container</p>
+</li>
+<li>
+<p>application</p>
+</li>
+<li>
+<p>request</p>
+</li>
+</ul>
+<h2 id="澄清-与服务发现集成">澄清： 与服务发现集成</h2>
+<blockquote>
+<p>是否需要桥接 天湖自己的服务发现</p>
+</blockquote>
+<h3 id="现有集成方式">现有集成方式</h3>
+<ul>
+<li>azure</li>
+<li>consul</li>
+<li>dns</li>
+<li>ec2</li>
+<li>file</li>
+<li>gce</li>
+<li>kubernetes</li>
+<li>marathon</li>
+<li>openstack</li>
+<li>triton</li>
+<li>zookeeper</li>
+</ul>
+<h2 id="附录">附录</h2>
+<h3 id="demo">demo</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// Copyright 2015 The Prometheus Authors
+</span><span style="color:#75715e">// Licensed under the Apache License, Version 2.0 (the &#34;License&#34;);
+</span><span style="color:#75715e">// you may not use this file except in compliance with the License.
+</span><span style="color:#75715e">// You may obtain a copy of the License at
+</span><span style="color:#75715e">//
+</span><span style="color:#75715e">// http://www.apache.org/licenses/LICENSE-2.0
+</span><span style="color:#75715e">//
+</span><span style="color:#75715e">// Unless required by applicable law or agreed to in writing, software
+</span><span style="color:#75715e">// distributed under the License is distributed on an &#34;AS IS&#34; BASIS,
+</span><span style="color:#75715e">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+</span><span style="color:#75715e">// See the License for the specific language governing permissions and
+</span><span style="color:#75715e">// limitations under the License.
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// A simple example exposing fictional RPC latencies with different types of
+</span><span style="color:#75715e">// random distributions (uniform, normal, and exponential) as Prometheus
+</span><span style="color:#75715e">// metrics.
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;flag&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;math&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+
+	<span style="color:#e6db74">&#34;github.com/prometheus/client_golang/prometheus&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/prometheus/client_golang/prometheus/promhttp&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> (
+	<span style="color:#a6e22e">addr</span>              = <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">String</span>(<span style="color:#e6db74">&#34;listen-address&#34;</span>, <span style="color:#e6db74">&#34;:8080&#34;</span>, <span style="color:#e6db74">&#34;The address to listen on for HTTP requests.&#34;</span>)
+	<span style="color:#a6e22e">uniformDomain</span>     = <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Float64</span>(<span style="color:#e6db74">&#34;uniform.domain&#34;</span>, <span style="color:#ae81ff">0.0002</span>, <span style="color:#e6db74">&#34;The domain for the uniform distribution.&#34;</span>)
+	<span style="color:#a6e22e">normDomain</span>        = <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Float64</span>(<span style="color:#e6db74">&#34;normal.domain&#34;</span>, <span style="color:#ae81ff">0.0002</span>, <span style="color:#e6db74">&#34;The domain for the normal distribution.&#34;</span>)
+	<span style="color:#a6e22e">normMean</span>          = <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Float64</span>(<span style="color:#e6db74">&#34;normal.mean&#34;</span>, <span style="color:#ae81ff">0.00001</span>, <span style="color:#e6db74">&#34;The mean for the normal distribution.&#34;</span>)
+	<span style="color:#a6e22e">oscillationPeriod</span> = <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#e6db74">&#34;oscillation-period&#34;</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>, <span style="color:#e6db74">&#34;The duration of the rate oscillation period.&#34;</span>)
+)
+
+<span style="color:#66d9ef">var</span> (
+	<span style="color:#75715e">// Create a summary to track fictional interservice RPC latencies for three
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// distinct services with different latency distributions. These services are
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// differentiated via a &#34;service&#34; label.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rpcDurations</span> = <span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">NewSummaryVec</span>(
+		<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">SummaryOpts</span>{
+			<span style="color:#a6e22e">Name</span>:       <span style="color:#e6db74">&#34;rpc_durations_seconds&#34;</span>,
+			<span style="color:#a6e22e">Help</span>:       <span style="color:#e6db74">&#34;RPC latency distributions.&#34;</span>,
+			<span style="color:#a6e22e">Objectives</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">float64</span>]<span style="color:#66d9ef">float64</span>{<span style="color:#ae81ff">0.5</span>: <span style="color:#ae81ff">0.05</span>, <span style="color:#ae81ff">0.9</span>: <span style="color:#ae81ff">0.01</span>, <span style="color:#ae81ff">0.99</span>: <span style="color:#ae81ff">0.001</span>},
+		},
+		[]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;service&#34;</span>},
+	)
+	<span style="color:#75715e">// The same as above, but now as a histogram, and only for the normal
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// distribution. The buckets are targeted to the parameters of the
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// normal distribution, with 20 buckets centered on the mean, each
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// half-sigma wide.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rpcDurationsHistogram</span> = <span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">NewHistogram</span>(<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">HistogramOpts</span>{
+		<span style="color:#a6e22e">Name</span>:    <span style="color:#e6db74">&#34;rpc_durations_histogram_seconds&#34;</span>,
+		<span style="color:#a6e22e">Help</span>:    <span style="color:#e6db74">&#34;RPC latency distributions.&#34;</span>,
+		<span style="color:#a6e22e">Buckets</span>: <span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">LinearBuckets</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">normMean</span><span style="color:#f92672">-</span><span style="color:#ae81ff">5</span><span style="color:#f92672">**</span><span style="color:#a6e22e">normDomain</span>, <span style="color:#ae81ff">.5</span><span style="color:#f92672">**</span><span style="color:#a6e22e">normDomain</span>, <span style="color:#ae81ff">20</span>),
+	})
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+	<span style="color:#75715e">// Register the summary and the histogram with Prometheus&#39;s default registry.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">MustRegister</span>(<span style="color:#a6e22e">rpcDurations</span>)
+	<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">MustRegister</span>(<span style="color:#a6e22e">rpcDurationsHistogram</span>)
+	<span style="color:#75715e">// Add Go module build info.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">MustRegister</span>(<span style="color:#a6e22e">prometheus</span>.<span style="color:#a6e22e">NewBuildInfoCollector</span>())
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Parse</span>()
+
+	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+
+	<span style="color:#a6e22e">oscillationFactor</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">float64</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">Sin</span>(<span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">Sin</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span><span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">Pi</span><span style="color:#f92672">*</span>float64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>))<span style="color:#f92672">/</span>float64(<span style="color:#f92672">*</span><span style="color:#a6e22e">oscillationPeriod</span>)))
+	}
+
+	<span style="color:#75715e">// Periodically record some sample latencies for the three services.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#66d9ef">for</span> {
+			<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Float64</span>() <span style="color:#f92672">*</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">uniformDomain</span>
+			<span style="color:#a6e22e">rpcDurations</span>.<span style="color:#a6e22e">WithLabelValues</span>(<span style="color:#e6db74">&#34;uniform&#34;</span>).<span style="color:#a6e22e">Observe</span>(<span style="color:#a6e22e">v</span>)
+			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#ae81ff">100</span><span style="color:#f92672">*</span><span style="color:#a6e22e">oscillationFactor</span>()) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+		}
+	}()
+
+	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#66d9ef">for</span> {
+			<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> (<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">NormFloat64</span>() <span style="color:#f92672">*</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">normDomain</span>) <span style="color:#f92672">+</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">normMean</span>
+			<span style="color:#a6e22e">rpcDurations</span>.<span style="color:#a6e22e">WithLabelValues</span>(<span style="color:#e6db74">&#34;normal&#34;</span>).<span style="color:#a6e22e">Observe</span>(<span style="color:#a6e22e">v</span>)
+			<span style="color:#a6e22e">rpcDurationsHistogram</span>.<span style="color:#a6e22e">Observe</span>(<span style="color:#a6e22e">v</span>)
+			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#ae81ff">75</span><span style="color:#f92672">*</span><span style="color:#a6e22e">oscillationFactor</span>()) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+		}
+	}()
+
+	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#66d9ef">for</span> {
+			<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">ExpFloat64</span>() <span style="color:#f92672">/</span> <span style="color:#ae81ff">1e6</span>
+			<span style="color:#a6e22e">rpcDurations</span>.<span style="color:#a6e22e">WithLabelValues</span>(<span style="color:#e6db74">&#34;exponential&#34;</span>).<span style="color:#a6e22e">Observe</span>(<span style="color:#a6e22e">v</span>)
+			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#ae81ff">50</span><span style="color:#f92672">*</span><span style="color:#a6e22e">oscillationFactor</span>()) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+		}
+	}()
+
+	<span style="color:#75715e">// Expose the registered metrics via HTTP.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#e6db74">&#34;/metrics&#34;</span>, <span style="color:#a6e22e">promhttp</span>.<span style="color:#a6e22e">Handler</span>())
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">addr</span>, <span style="color:#66d9ef">nil</span>))
+}
+</code></pre></div>
+
+  </main>
+
+<footer class="tc center bt b--near-white pvx phm pax-m phxl-l pvx-l">
+        <small class="f5 mw7 db center phm lh-copy">
+          <nav>
+              <ul class="list pln">
+                  <li class="dib prm"><a href="https://www.github.com"><span class="js-geomicon geomicon blue" data-icon="github"></span></a></li>
+              </ul>
+              </nav>
+              Copyright-  2015~2020
+        </small>
+		 	<div style="width:300px;margin:0 auto; padding:20px 0;">
+		 		<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010802010694" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010802010694号</p></a>
+		 	</div>
+		 
+    </footer>
+  </body>
+</html>
+
