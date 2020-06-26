@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="author" content="Marlon Cabrera Oliveira">
+    <meta name="description" content="Hugo theme using tachyons.io & geomicons.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Mono&amp;subset=latin,cyrillic">
+    <link rel="stylesheet" href="../../css/tachyons.css">
+    <style>
+        .geomicon { width: 1.5em; height: 1.5em; color: #405660; }
+        body{ font-family:'PT Sans', sans-serif; }
+    </style>
+  </head>
+  <body>
+      <header class="tc pal bb b-near-white">
+    <h1 class="f6 thin i link-child"><a href="../../">li 的 Blog</a></h1>
+        <nav>
+          <ul class="list pln">
+            <li class="dib prm"><a href="../../"><span class="js-geomicon geomicon" data-icon="home"></span>Home</a></li>
+            <li class="dib prm"><a href="../../post"><span class="js-geomicon geomicon" data-icon="compose"></span>Posts</a></li>
+            <li class="dib prm"><a href="../../about"><span class="js-geomicon geomicon" data-icon="user"></span>About</a></li>
+          </ul>
+        </nav>
+        </header>
+
+
+  <main class="pal">
+
+    <h1>Alpine Image</h1>
+    <h2>Jun 26, 2020</h2>
+      <h2 id="背景">背景</h2>
+<ul>
+<li>公司使用的 alpine 镜像进行过网络参数调优</li>
+<li>新项目 使用了 cgo (librdkafka-go-bindings)</li>
+</ul>
+<h2 id="冲突">冲突</h2>
+<ul>
+<li>想要在该项目中使用调优过的 alpine 镜像</li>
+<li>该镜像不具备编译源代码能力</li>
+<li>librdkafka-go-bindings 需要编译时开启 cgo</li>
+</ul>
+<h2 id="结果">结果</h2>
+<ul>
+<li>通过 多阶段编译 方式解决上面问题
+<ol>
+<li>使用 golang:alpine 环境 作为编译阶段的底包</li>
+<li>apk 安装 build-base vim git 等包组和实用工具</li>
+<li>编译阶段产物 复制到最终阶段 (使用公司调优的 alpine)</li>
+</ol>
+</li>
+<li>形成了通用的 多阶段编译方案 (伸手党最爱)
+<ul>
+<li>源码放置 相关 Dockerfile Makefile</li>
+<li>ci 配置 编译路径</li>
+<li>just build</li>
+</ul>
+</li>
+</ul>
+<h2 id="感想">感想</h2>
+<ul>
+<li>解决这个问题 使用的 go 库自带电池是非常贴心的
+<ul>
+<li>大大降低了 折腾编译依赖库的成本
+<ul>
+<li>对比同组的巨巨 手工编译依赖的代码库 我真是 一部到位</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用一个好的 底包也有很大关系
+<ul>
+<li>alpine 自带的包管理 使得我能够以最低成本调整出编译代码的必要环境</li>
+</ul>
+</li>
+<li>前期对问题的了解 也很重要
+<ul>
+<li>问题识别不清楚 很容易抓不到核心矛盾</li>
+</ul>
+</li>
+</ul>
+
+
+  </main>
+
+<footer class="tc center bt b--near-white pvx phm pax-m phxl-l pvx-l">
+        <small class="f5 mw7 db center phm lh-copy">
+          <nav>
+              <ul class="list pln">
+                  <li class="dib prm"><a href="https://www.github.com"><span class="js-geomicon geomicon blue" data-icon="github"></span></a></li>
+              </ul>
+              </nav>
+              Copyright-  2015~2020
+        </small>
+		 	<div style="width:300px;margin:0 auto; padding:20px 0;">
+		 		<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010802010694" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010802010694号</p></a>
+		 	</div>
+		 
+    </footer>
+  </body>
+</html>
+
