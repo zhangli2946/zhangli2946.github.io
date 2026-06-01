@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>未来企业 on li 的 Blog</title><link>https://zhangli2946.github.io/blog/%E6%9C%AA%E6%9D%A5%E4%BC%81%E4%B8%9A/</link><description>Recent content in 未来企业 on li 的 Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 24 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangli2946.github.io/blog/%E6%9C%AA%E6%9D%A5%E4%BC%81%E4%B8%9A/index.xml" rel="self" type="application/rss+xml"/><item><title>公司架构全景</title><link>https://zhangli2946.github.io/blog/togaf-company-overview/</link><pubDate>Sun, 24 May 2026 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/togaf-company-overview/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;写在正文前 &lt;br&gt;
+开这个系列希望能够通过 AI 的辅助结合自己的观察， &lt;br&gt;
+以 &lt;strong&gt;TOGAF&lt;/strong&gt; 为分析框架，推演 AI 加持下，案例的企业是否能走出 AI 转型的路线&lt;br&gt;
+在以最小的熵增为代价，取得尽可能多的行业优势 &lt;br&gt;
+选取此企业为案例也有几个原因 ：企业主具备良好的变现渠道，资源供给基本没有压力 能够支撑各种方向的尝试与探索。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="公司架构全景"&gt;公司架构全景&lt;/h1&gt;
+&lt;h2 id="公司概况"&gt;公司概况&lt;/h2&gt;
+&lt;p&gt;某科技公司是一家以嵌入式设备为核心、提供配套软件与云服务的解决方案提供商。其产品以 NAS 为基础，在设备端集成 AI 推理能力，面向大型企业客户交付。&lt;/p&gt;
+&lt;p&gt;公司组织扁平化，按两大板块运作：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;研发部门&lt;/strong&gt;： FAE部门 和 平台部门&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;支撑部门&lt;/strong&gt;： 行政等&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节，自身聚焦于产品研发与交付。&lt;/p&gt;
+&lt;h2 id="业务架构鸟瞰"&gt;业务架构鸟瞰&lt;/h2&gt;
+&lt;h3 id="核心产品形态"&gt;核心产品形态&lt;/h3&gt;
+&lt;p&gt;公司的产品以&amp;quot;硬件 + 软件 + AI&amp;quot;的组合呈现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;硬件&lt;/strong&gt; ：基于通用计算平台的嵌入式设备&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;软件 与 AI&lt;/strong&gt; ：
+&lt;ul&gt;
+&lt;li&gt;采用分层结构 : 以 &lt;strong&gt;复用范围&lt;/strong&gt; 分为 : 基础设施, 公共平台, 特化业务&lt;/li&gt;
+&lt;li&gt;采用微服务架构 : 以支撑 研发人员的更替 和 能力要求的变化.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;云平台&lt;/strong&gt; ：
+&lt;ul&gt;
+&lt;li&gt;云上业务运行于 PaaS 上 : 支撑设备运营和多设备互联业务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="业务模式"&gt;业务模式&lt;/h3&gt;
+&lt;p&gt;公司作为解决方案供应商,协同合作伙伴完成交付.&lt;/p&gt;
+&lt;p&gt;公司拥有自研软件基线产品. 根据硬件情况进行软件移植与裁剪，形成定制化解决方案。&lt;/p&gt;
+&lt;p&gt;交付链路为：&lt;/p&gt;</description></item></channel></rss>

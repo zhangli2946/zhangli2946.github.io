@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Blogs on li 的 Blog</title><link>https://zhangli2946.github.io/blog/</link><description>Recent content in Blogs on li 的 Blog</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 24 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://zhangli2946.github.io/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>基于微信小程序的 家庭囤货保质期管理</title><link>https://zhangli2946.github.io/blog/weapp-grocery-expiry-management/</link><pubDate>Sun, 24 May 2026 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/weapp-grocery-expiry-management/</guid><description>&lt;h2 id="背景与动机"&gt;背景与动机&lt;/h2&gt;
+&lt;p&gt;家庭囤货是常态，但管理不善就会变成「买完忘、过期扔、重复买」的死循环。冷藏室里冻了一年的肉、柜子深处过期的调味料，是每个家庭都会遇到的场景。&lt;/p&gt;
+&lt;p&gt;市面上已有的保质期管理工具大多是 SaaS 模式，需要注册账号、连接云端。但这类工具的核心场景是&lt;strong&gt;个人或家庭内部使用&lt;/strong&gt;，为了记几个日期去搭一套后端，不仅成本高，还有隐私顾虑。有没有更轻量的办法？&lt;/p&gt;
+&lt;p&gt;答案是：纯本地微信小程序，零服务器成本。&lt;/p&gt;
+&lt;h2 id="功能设计"&gt;功能设计&lt;/h2&gt;
+&lt;h3 id="商品录入"&gt;商品录入&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;扫码录入&lt;/strong&gt;：使用 &lt;code&gt;wx.scanCode&lt;/code&gt; 扫描商品条码，自动获取条码编号&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;手动回填&lt;/strong&gt;：当扫码无法获取完整信息时，用户自行填写品名、分类、购入日期、保质期&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="库存看板"&gt;库存看板&lt;/h3&gt;
+&lt;p&gt;以列表或卡片形式展示所有商品，支持两种排序维度：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;按过期时间&lt;/strong&gt;：即将过期的排最前&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;按分类&lt;/strong&gt;：同类商品聚合展示&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="到期提醒"&gt;到期提醒&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;首页看板高亮标记：即将过期（黄色）和已过期（红色）&lt;/li&gt;
+&lt;li&gt;小程序启动时自动检查：通过 &lt;code&gt;App.onShow&lt;/code&gt; 或页面 &lt;code&gt;onLoad&lt;/code&gt; 遍历所有商品，计算过期状态并展示汇总提示&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="条码识别演进"&gt;条码识别演进&lt;/h3&gt;
+&lt;p&gt;当前版本扫码后只拿到条码编号，需要用户手动补充品名。商业版计划接入 LLM 识别方案：拍摄商品包装 → OCR 提取文字 → LLM 结构化输出（品名、品牌、保质期），一步完成录入。&lt;/p&gt;
+&lt;h2 id="技术实现"&gt;技术实现&lt;/h2&gt;
+&lt;h3 id="数据模型"&gt;数据模型&lt;/h3&gt;
+&lt;p&gt;商品是核心实体，字段设计如下：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;字段&lt;/th&gt;
+&lt;th&gt;类型&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;code&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;条码编号 (EAN-13)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;商品名称&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;category&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;分类（食品、日用品等）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;quantity&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;number&lt;/td&gt;
+&lt;td&gt;数量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;purchaseDate&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;购入日期 (YYYY-MM-DD)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;expiryDate&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;过期日期 (YYYY-MM-DD)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;notes&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;string&lt;/td&gt;
+&lt;td&gt;备注&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;分类采用预置 + 自定义模式。预置分类包括：食品、饮品、调味品、日用品、个人护理、药品、其他。&lt;/p&gt;
+&lt;h3 id="数据持久化方案"&gt;数据持久化方案&lt;/h3&gt;
+&lt;p&gt;这是整个项目最核心的技术决策。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;约束条件&lt;/strong&gt;：零云服务、零服务器成本、用户无感、数据不能轻易丢失。&lt;/p&gt;
+&lt;h4 id="微信小程序的两种本地存储"&gt;微信小程序的两种本地存储&lt;/h4&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;存储方式&lt;/th&gt;
+&lt;th&gt;限制&lt;/th&gt;
+&lt;th&gt;清理缓存时&lt;/th&gt;
+&lt;th&gt;清理全部数据时&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;wx.setStorageSync&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;总上限 10MB，单 key 1MB&lt;/td&gt;
+&lt;td&gt;❌ 丢失&lt;/td&gt;
+&lt;td&gt;❌ 丢失&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;文件系统 (&lt;code&gt;wx.env.USER_DATA_PATH&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;总上限 200MB&lt;/td&gt;
+&lt;td&gt;✅ 保留&lt;/td&gt;
+&lt;td&gt;❌ 丢失&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;关键区别在于：用户最常见的操作是「清理缓存」（清 Storage），而文件系统的数据&lt;strong&gt;不受影响&lt;/strong&gt;。「清理全部数据」才同时清除两者，但这是用户主动销毁数据的操作，任何本地 App 都无法避免。&lt;/p&gt;</description></item><item><title>Alpine Image</title><link>https://zhangli2946.github.io/blog/alpine-image/</link><pubDate>Fri, 26 Jun 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/alpine-image/</guid><description>&lt;h2 id="背景"&gt;背景&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;公司使用的 alpine 镜像进行过网络参数调优&lt;/li&gt;
+&lt;li&gt;新项目 使用了 cgo (librdkafka-go-bindings)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="冲突"&gt;冲突&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;想要在该项目中使用调优过的 alpine 镜像&lt;/li&gt;
+&lt;li&gt;该镜像不具备编译源代码能力&lt;/li&gt;
+&lt;li&gt;librdkafka-go-bindings 需要编译时开启 cgo&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="结果"&gt;结果&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;通过 多阶段编译 方式解决上面问题
+&lt;ol&gt;
+&lt;li&gt;使用 golang:alpine 环境 作为编译阶段的底包&lt;/li&gt;
+&lt;li&gt;apk 安装 build-base vim git 等包组和实用工具&lt;/li&gt;
+&lt;li&gt;编译阶段产物 复制到最终阶段 (使用公司调优的 alpine)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;形成了通用的 多阶段编译方案 (伸手党最爱)
+&lt;ul&gt;
+&lt;li&gt;源码放置 相关 Dockerfile Makefile&lt;/li&gt;
+&lt;li&gt;ci 配置 编译路径&lt;/li&gt;
+&lt;li&gt;just build&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="感想"&gt;感想&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;解决这个问题 使用的 go 库自带电池是非常贴心的
+&lt;ul&gt;
+&lt;li&gt;大大降低了 折腾编译依赖库的成本
+&lt;ul&gt;
+&lt;li&gt;对比同组的巨巨 手工编译依赖的代码库 我真是 一部到位&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;使用一个好的 底包也有很大关系
+&lt;ul&gt;
+&lt;li&gt;alpine 自带的包管理 使得我能够以最低成本调整出编译代码的必要环境&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;前期对问题的了解 也很重要
+&lt;ul&gt;
+&lt;li&gt;问题识别不清楚 很容易抓不到核心矛盾&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Go Module 与 私有库</title><link>https://zhangli2946.github.io/blog/go-module-private-repo/</link><pubDate>Thu, 27 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/go-module-private-repo/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;由于公司 vcs 设置缘故 项目基本存在于 subgroup 下 且 import 路径也有属于 project 的 subdir
+这就需要公司的 vcs 能够适应 ?go-get=1 访问 subdir 或 subgroup 时能给出正确的 clone 地址&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="问题背景"&gt;问题背景&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;公司 vcs 系统使用 gitlab-ce 10.6.5 版本
+源码 module 保存在 subgroup 和 subdir 下
+vcs 没有 https 端点&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="调查范围"&gt;调查范围&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;module get 的工作方式&lt;/li&gt;
+&lt;li&gt;gitlab 响应逻辑&lt;/li&gt;
+&lt;li&gt;正常工作的必要条件&lt;/li&gt;
+&lt;li&gt;认证&lt;/li&gt;
+&lt;li&gt;联通&lt;/li&gt;
+&lt;li&gt;编译&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="实际工作"&gt;实际工作&lt;/h2&gt;
+&lt;h3 id="服务搭建与配置"&gt;服务搭建与配置&lt;/h3&gt;
+&lt;h4 id="证书与签名"&gt;证书与签名&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href="https://www.akadia.com/services/ssh_test_certificate.html"&gt;英文参考&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id="自签名证书"&gt;自签名证书&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 1.生成私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out server.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 2.生成 CSR (Certificate Signing Request)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -key server.key -out server.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 3.生成自签名证书&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl x509 -req -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -in server.csr -signkey server.key -out server.crt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id="自建-ca-签名证书"&gt;自建 CA 签名证书&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 1.创建 CA 私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out ca.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 2.生成 CA 的自签名证书&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -x509 -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key ca.key -out ca.crt
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 3.生成需要颁发证书的私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out server.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 4.生成要颁发证书的证书签名请求，证书签名请求当中的 Common Name 必须区别于 CA 的证书里面的 Common Name&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -key server.key -out server.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 5.用 2 创建的 CA 证书给 4 生成的 签名请求 进行签名&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl x509 -req -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -in server.csr -CA ca.crt -CAkey ca.key -set_serial &lt;span style="color:#ae81ff"&gt;01&lt;/span&gt; -out server.crt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="工具访问与尝试"&gt;工具访问与尝试&lt;/h3&gt;
+&lt;h4 id="模拟访问"&gt;模拟访问&lt;/h4&gt;
+&lt;h5 id="curl-模拟"&gt;CURL 模拟&lt;/h5&gt;
+&lt;h5 id="postman-模拟"&gt;POSTMAN 模拟&lt;/h5&gt;
+&lt;h5 id="httpie-模拟"&gt;HTTPie 模拟&lt;/h5&gt;
+&lt;h4 id="go-mod-访问"&gt;go mod 访问&lt;/h4&gt;
+&lt;h3 id="源码阅读与分析"&gt;源码阅读与分析&lt;/h3&gt;
+&lt;h4 id="gitlab-源码-go-middleware-部分"&gt;gitlab 源码 Go Middleware 部分&lt;/h4&gt;
+&lt;h4 id="go-mod-源码-module-lookup-部分"&gt;go mod 源码 Module Lookup 部分&lt;/h4&gt;
+&lt;h2 id="总结"&gt;总结&lt;/h2&gt;
+&lt;h3 id="外部评价"&gt;外部评价&lt;/h3&gt;
+&lt;h3 id="内部评价"&gt;内部评价&lt;/h3&gt;
+&lt;h2 id="附录"&gt;附录&lt;/h2&gt;
+&lt;h3 id="多级证书签名"&gt;多级证书签名&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 生成根 CA 并自签（Common Name 填 RootCA）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -des3 -out keys/RootCA.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -x509 -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key keys/RootCA.key -out keys/RootCA.crt
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 生成二级 CA（Common Name 填 SecondCA）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -des3 -out keys/secondCA.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl rsa -in keys/secondCA.key -out keys/secondCA.key
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key keys/secondCA.key -out keys/secondCA.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl ca -extensions v3_ca -in keys/secondCA.csr -config /etc/pki/tls/openssl.cnf -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -out keys/secondCA.crt -cert keys/RootCA.crt -keyfile keys/RootCA.key
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 生成三级 CA（Common Name 填 ThirdCA）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -des3 -out keys/thirdCA.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl rsa -in keys/thirdCA.key -out keys/thirdCA.key
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key keys/thirdCA.key -out keys/thirdCA.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl ca -extensions v3_ca -in keys/thirdCA.csr -config /etc/pki/tls/openssl.cnf -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -out keys/thirdCA.crt -cert keys/secondCA.crt -keyfile keys/secondCA.key
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 使用三级 CA 签发服务器证书&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -des3 -out keys/server.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl rsa -in keys/server.key -out keys/server.key
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key keys/server.key -out keys/server.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl ca -in keys/server.csr -config /etc/pki/tls/openssl.cnf -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -out keys/server.crt -cert keys/thirdCA.crt -keyfile keys/thirdCA.key
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="build--x"&gt;build -x&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;使用 go build -x 能看到更多 go module build 期间更多的细节&lt;/p&gt;</description></item><item><title>Go Module 与 私有库 (二)</title><link>https://zhangli2946.github.io/blog/go-module-private-part2/</link><pubDate>Thu, 27 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/go-module-private-part2/</guid><description>&lt;h2 id="现状"&gt;现状&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;公司当前使用 GitLab 版本 为 10.6.5&lt;/li&gt;
+&lt;li&gt;使用 Go Module 拉取 GitLab 中 个人目录下的项目 能够正常工作&lt;/li&gt;
+&lt;li&gt;使用 Go Module 拉取 GitLab 中 SubGroup/SubDirect 不能够正常工作
+&lt;ul&gt;
+&lt;li&gt;go get 解析到的地址为 gitlab.supos.ai/$GROUP/$SUBGROUP 用于拉取项目目录&lt;/li&gt;
+&lt;li&gt;解析到的地址有误 不能进行后续动作&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="问题"&gt;问题&lt;/h2&gt;
+&lt;h3 id="背景"&gt;背景&lt;/h3&gt;
+&lt;h4 id="go-get-查找-repo-root-方式"&gt;go get 查找 repo root 方式&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go get -u -v gitlab.supos.ai/supos/datalake/common/log
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;get &lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake&amp;#34;&lt;/span&gt;: found meta tag get.metaImport&lt;span style="color:#f92672"&gt;{&lt;/span&gt;Prefix:&lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake&amp;#34;&lt;/span&gt;, VCS:&lt;span style="color:#e6db74"&gt;&amp;#34;git&amp;#34;&lt;/span&gt;, RepoRoot:&lt;span style="color:#e6db74"&gt;&amp;#34;http://gitlab.supos.ai/supos/datalake.git&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; at //gitlab.supos.ai/supos/datalake?go-get&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;get &lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake/common&amp;#34;&lt;/span&gt;: found meta tag get.metaImport&lt;span style="color:#f92672"&gt;{&lt;/span&gt;Prefix:&lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake/common&amp;#34;&lt;/span&gt;, VCS:&lt;span style="color:#e6db74"&gt;&amp;#34;git&amp;#34;&lt;/span&gt;, RepoRoot:&lt;span style="color:#e6db74"&gt;&amp;#34;http://gitlab.supos.ai/supos/datalake/common.git&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; at //gitlab.supos.ai/supos/datalake/common?go-get&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;get &lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake/common/log&amp;#34;&lt;/span&gt;: found meta tag get.metaImport&lt;span style="color:#f92672"&gt;{&lt;/span&gt;Prefix:&lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake/common&amp;#34;&lt;/span&gt;, VCS:&lt;span style="color:#e6db74"&gt;&amp;#34;git&amp;#34;&lt;/span&gt;, RepoRoot:&lt;span style="color:#e6db74"&gt;&amp;#34;http://gitlab.supos.ai/supos/datalake/common.git&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; at //gitlab.supos.ai/supos/datalake/common/log?go-get&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;get &lt;span style="color:#e6db74"&gt;&amp;#34;gitlab.supos.ai/supos/datalake/common/log&amp;#34;&lt;/span&gt;: verifying non-authoritative meta tag
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go: finding gitlab.supos.ai/supos/datalake/common/log latest
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gitlab.supos.ai/supos/datalake/common/log
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;由 log 可见 查找 repo root 的过程是根据 路径级别 递归查找&lt;/li&gt;
+&lt;li&gt;当进入 repo 的 subdir 时 返回的 RepoRoot 仍旧指向 repo 而非 其 subdir&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="go-get-携带认证信息的方式"&gt;go get 携带认证信息的方式&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://github.com/golang/go/blob/release-branch.go1.13/src/cmd/go/internal/auth/auth.go#L17"&gt;源码位置&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Go Module 与 私有库 (问题分析篇)</title><link>https://zhangli2946.github.io/blog/go-module-private-analysis/</link><pubDate>Thu, 27 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/go-module-private-analysis/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;由于公司 vcs 设置缘故 项目基本存在于 subgroup 下 且 import 路径也有属于 project 的 subdir
+这就需要公司的 vcs 能够适应 ?go-get=1 访问 subdir 或 subgroup 时能给出正确的 clone 地址&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="问题背景"&gt;问题背景&lt;/h2&gt;
+&lt;p&gt;公司 vcs 系统使用 gitlab-ce 10.6.5 版本，源码 module 保存在 subgroup 和 subdir 下，vcs 没有 https 端点。&lt;/p&gt;
+&lt;h2 id="调查范围"&gt;调查范围&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;module get 的工作方式&lt;/li&gt;
+&lt;li&gt;gitlab 响应逻辑&lt;/li&gt;
+&lt;li&gt;正常工作的必要条件&lt;/li&gt;
+&lt;li&gt;认证&lt;/li&gt;
+&lt;li&gt;联通&lt;/li&gt;
+&lt;li&gt;编译&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="实际工作"&gt;实际工作&lt;/h2&gt;
+&lt;h3 id="服务搭建与配置"&gt;服务搭建与配置&lt;/h3&gt;
+&lt;h4 id="证书与签名"&gt;证书与签名&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://www.akadia.com/services/ssh_test_certificate.html"&gt;英文参考&lt;/a&gt;&lt;/p&gt;
+&lt;h5 id="自签名证书"&gt;自签名证书&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 1.生成私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out server.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 2.生成 CSR (Certificate Signing Request)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -key server.key -out server.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 3.生成自签名证书&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl x509 -req -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -in server.csr -signkey server.key -out server.crt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id="自建-ca-签名证书"&gt;自建 CA 签名证书&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 1.创建 CA 私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out ca.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 2.生成 CA 的自签名证书&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -x509 -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -key ca.key -out ca.crt
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 3.生成需要颁发证书的私钥&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl genrsa -out server.key &lt;span style="color:#ae81ff"&gt;2048&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 4.生成要颁发证书的证书签名请求&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl req -new -key server.key -out server.csr
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 5.用 CA 证书给签名请求进行签名&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ openssl x509 -req -days &lt;span style="color:#ae81ff"&gt;3650&lt;/span&gt; -in server.csr -CA ca.crt -CAkey ca.key -set_serial &lt;span style="color:#ae81ff"&gt;01&lt;/span&gt; -out server.crt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="工具访问与尝试"&gt;工具访问与尝试&lt;/h3&gt;
+&lt;h4 id="模拟访问"&gt;模拟访问&lt;/h4&gt;
+&lt;p&gt;使用 CURL、POSTMAN、HTTPie 模拟 ?go-get=1 请求进行验证。&lt;/p&gt;</description></item><item><title>go module 访问私有库 (gitlab@11.10.4)</title><link>https://zhangli2946.github.io/blog/go-module-gitlab/</link><pubDate>Sun, 16 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/go-module-gitlab/</guid><description>&lt;h2 id="开发环境-配置"&gt;开发环境 配置&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;推荐 编译环境升级 go 1.13+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="启动-gomod-模式"&gt;启动 GOMOD 模式&lt;/h3&gt;
+&lt;h4 id="设置-go1111module"&gt;设置 GO1111MODULE&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;go env -w GO111MODULE=on&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="配置公有库依赖管理"&gt;配置公有库依赖管理&lt;/h3&gt;
+&lt;h4 id="设置-goproxy"&gt;设置 GOPROXY&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;go env -w GOPORXY=http://10.30.52.66:3000,direct&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="配置私有库依赖管理"&gt;配置私有库依赖管理&lt;/h3&gt;
+&lt;h4 id="设置-goprivate"&gt;设置 GOPRIVATE&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;go env -w GOPRIVATE=$PRIVATE_REPO_HOST&lt;/code&gt;&lt;/p&gt;
+&lt;h4 id="设置-git-over-https-免密"&gt;设置 Git over HTTP(s) 免密&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在 gitlab 注册后从 web 界面 获取 acceess token (编译环境 选只读; 开发环境 选读写)
+通过 下述方式 进行免密配置后 不需要进行 ssh 证书添加&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;touch ~/.git-credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;echo &lt;span style="color:#e6db74"&gt;&amp;#34;http://&lt;/span&gt;$PRIVATE_REPO_USERNAME&lt;span style="color:#e6db74"&gt;:&lt;/span&gt;$$&lt;span style="color:#e6db74"&gt;PRIVATE_REPO_TOKEN@&lt;/span&gt;$PRIVATE_REPO_HOST&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.git-credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;echo &lt;span style="color:#e6db74"&gt;&amp;#34;https://&lt;/span&gt;$PRIVATE_REPO_USERNAME&lt;span style="color:#e6db74"&gt;:&lt;/span&gt;$$&lt;span style="color:#e6db74"&gt;PRIVATE_REPO_TOKEN@&lt;/span&gt;$PRIVATE_REPO_HOST&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.git-credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;git config --global credential.helper store
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id="设置-module-命令认证信息"&gt;设置 Module 命令认证信息&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;go mod 命令的认证信息 仅能从 主机登陆协议配置 $HOME/.netrc 中获取&lt;/p&gt;</description></item><item><title>Init</title><link>https://zhangli2946.github.io/blog/init/</link><pubDate>Sun, 16 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/init/</guid><description>&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-make" data-lang="make"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;release&lt;/span&gt;&lt;span style="color:#f92672"&gt;:&lt;/span&gt; build
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; @cd zhangli2946.github.io &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; git add . &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; git commit -m &lt;span style="color:#e6db74"&gt;&amp;#34;update&amp;#34;&lt;/span&gt; &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; git push
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;build&lt;/span&gt;&lt;span style="color:#f92672"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; hugo -D
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>使用 prometheus 监控应用性能</title><link>https://zhangli2946.github.io/blog/prometheus-metrics/</link><pubDate>Sun, 16 Feb 2020 00:00:00 +0000</pubDate><guid>https://zhangli2946.github.io/blog/prometheus-metrics/</guid><description>&lt;h2 id="引入pull-模型的服务监控"&gt;引入：Pull 模型的服务监控&lt;/h2&gt;
+&lt;p&gt;&lt;img alt="Prometheus 生态" loading="lazy" src="https://camo.githubusercontent.com/78b3b29d22cea8eee673e34fd204818ea532c171/68747470733a2f2f63646e2e6a7364656c6976722e6e65742f67682f70726f6d6574686575732f70726f6d65746865757340633334323537643036396336333036383564613335626365663038343633326666643564363230392f646f63756d656e746174696f6e2f696d616765732f6172636869746563747572652e737667"&gt;&lt;/p&gt;
+&lt;h3 id="pull-模型"&gt;Pull 模型&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;由 Prometheus 向所有已知的 target 发送 http get $HOST:$PORT/metrics&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;http get prometheus:9090/metrics&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# HELP prometheus_tsdb_wal_page_flushes_total Total number of page flushes.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# TYPE prometheus_tsdb_wal_page_flushes_total counter&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_page_flushes_total &lt;span style="color:#ae81ff"&gt;5759&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# TYPE promhttp_metric_handler_requests_total counter&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;promhttp_metric_handler_requests_total&lt;span style="color:#f92672"&gt;{&lt;/span&gt;code&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;200&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;1134&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;promhttp_metric_handler_requests_total&lt;span style="color:#f92672"&gt;{&lt;/span&gt;code&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;500&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;promhttp_metric_handler_requests_total&lt;span style="color:#f92672"&gt;{&lt;/span&gt;code&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;503&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# HELP promhttp_metric_handler_requests_in_flight Current number of scrapes being served.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# TYPE promhttp_metric_handler_requests_in_flight gauge&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;promhttp_metric_handler_requests_in_flight &lt;span style="color:#ae81ff"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# HELP prometheus_tsdb_wal_truncate_duration_seconds Duration of WAL truncation.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# TYPE prometheus_tsdb_wal_truncate_duration_seconds summary&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncate_duration_seconds&lt;span style="color:#f92672"&gt;{&lt;/span&gt;quantile&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;0.5&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; NaN
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncate_duration_seconds&lt;span style="color:#f92672"&gt;{&lt;/span&gt;quantile&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;0.9&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; NaN
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncate_duration_seconds&lt;span style="color:#f92672"&gt;{&lt;/span&gt;quantile&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;0.99&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; NaN
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncate_duration_seconds_sum &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncate_duration_seconds_count &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_wal_truncations_total &lt;span style="color:#ae81ff"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# HELP prometheus_tsdb_compaction_chunk_range_seconds Final time range&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# TYPE prometheus_tsdb_compaction_chunk_range_seconds histogram&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_bucket&lt;span style="color:#f92672"&gt;{&lt;/span&gt;le&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;102400&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_bucket&lt;span style="color:#f92672"&gt;{&lt;/span&gt;le&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;1.6384e+06&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;594&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_bucket&lt;span style="color:#f92672"&gt;{&lt;/span&gt;le&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;6.5536e+06&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;2838&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_bucket&lt;span style="color:#f92672"&gt;{&lt;/span&gt;le&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;+Inf&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;2838&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_sum 4.489241e+09
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;prometheus_tsdb_compaction_chunk_range_seconds_count &lt;span style="color:#ae81ff"&gt;2838&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="可视化效果"&gt;可视化效果&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://192.168.11.98:3000"&gt;grafana&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://192.168.11.98:9090/graph"&gt;prometheus&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="数据类型-与-指标定义"&gt;数据类型 与 指标定义&lt;/h2&gt;
+&lt;h3 id="数据类型"&gt;数据类型&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;计数器
+&lt;ul&gt;
+&lt;li&gt;单调增加&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;示数器
+&lt;ul&gt;
+&lt;li&gt;随意增减&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;分布
+&lt;ul&gt;
+&lt;li&gt;分段统计 _bucket{le=&amp;quot;&amp;quot;}&lt;/li&gt;
+&lt;li&gt;计量 _sum&lt;/li&gt;
+&lt;li&gt;计数 _count&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;摘要
+&lt;ul&gt;
+&lt;li&gt;分位统计 {quantile=&amp;quot;&amp;quot;}&lt;/li&gt;
+&lt;li&gt;计量 _sum&lt;/li&gt;
+&lt;li&gt;计数 _count&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="指标定义"&gt;指标定义&lt;/h3&gt;
+&lt;h4 id="示例apdex-score"&gt;示例：Apdex score&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://prometheus.io/docs/practices/histograms/#apdex-score"&gt;原文&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>
