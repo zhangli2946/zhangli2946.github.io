@@ -1,0 +1,115 @@
+<!doctype html><html lang=en dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>业务架构：需求传递之困 | li 的 Blog</title><meta name=keywords content><meta name=description content="业务架构：需求传递之困
+
+1. 业务模式
+某科技公司的业务模式可以概括为：以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付。
+其产品形态包含四个层次：
+
+硬件：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。
+软件：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。
+AI：部署于设备端的推理服务。
+云平台：运行于运营商基础设施，支撑业务运营。
+
+客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。
+
+战略背景：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着合作伙伴既是销售通道，也是需求入口。
+
+
+2. 利益相关者
+基于 TOGAF 利益相关者分析框架，识别出以下关键角色：
+
+	
+			
+					利益相关者
+					类型
+					参与环节
+			
+	
+	
+			
+					客户（大型企业/政府）
+					外部
+					提出需求 → 验收交付
+			
+			
+					合作伙伴（经销商、系统集成商）
+					外部
+					需求转交 → 现场交付
+			
+			
+					产品人员
+					内部
+					接收需求 → 拆分需求
+			
+			
+					PM
+					内部
+					需求拆解 → 任务分配 → 验收
+			
+			
+					研发团队
+					内部
+					接收任务 → 实现
+			
+			
+					测试团队
+					内部
+					测试验证
+			
+			
+					AI 团队
+					内部
+					AI 优化/定制（按需）
+			
+			
+					架构师
+					内部
+					重大方案评审（偶尔）
+			
+			
+					售前/技术支持
+					内部
+					需求阶段技术评估
+			
+			
+					供应链/采购
+					内部
+					硬件定制阶段
+			
+			
+					高管/决策层
+					内部
+					重大方案或资源调配
+			
+	
+
+
+3. 核心业务流程
+从客户需求到最终交付，业务链路如下："><meta name=author content><link rel=canonical href=https://zhangli2946.github.io/blog/togaf-business-architecture/><link crossorigin=anonymous href=/assets/css/stylesheet.cd9298b33628769aa1bc1acebbbfd7aa11ce81dfe03484d479e1907760249a1d.css integrity="sha256-zZKYszYodpqhvBrOu7/XqhHOgd/gNITUeeGQd2Akmh0=" rel="preload stylesheet" as=style><link rel=icon href=https://zhangli2946.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://zhangli2946.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://zhangli2946.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://zhangli2946.github.io/apple-touch-icon.png><link rel=mask-icon href=https://zhangli2946.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://zhangli2946.github.io/blog/togaf-business-architecture/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script><meta property="og:url" content="https://zhangli2946.github.io/blog/togaf-business-architecture/"><meta property="og:site_name" content="li 的 Blog"><meta property="og:title" content="业务架构：需求传递之困"><meta property="og:description" content="业务架构：需求传递之困 1. 业务模式 某科技公司的业务模式可以概括为：以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付。
+其产品形态包含四个层次：
+硬件：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。 软件：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。 AI：部署于设备端的推理服务。 云平台：运行于运营商基础设施，支撑业务运营。 客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。
+战略背景：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着合作伙伴既是销售通道，也是需求入口。
+2. 利益相关者 基于 TOGAF 利益相关者分析框架，识别出以下关键角色：
+利益相关者 类型 参与环节 客户（大型企业/政府） 外部 提出需求 → 验收交付 合作伙伴（经销商、系统集成商） 外部 需求转交 → 现场交付 产品人员 内部 接收需求 → 拆分需求 PM 内部 需求拆解 → 任务分配 → 验收 研发团队 内部 接收任务 → 实现 测试团队 内部 测试验证 AI 团队 内部 AI 优化/定制（按需） 架构师 内部 重大方案评审（偶尔） 售前/技术支持 内部 需求阶段技术评估 供应链/采购 内部 硬件定制阶段 高管/决策层 内部 重大方案或资源调配 3. 核心业务流程 从客户需求到最终交付，业务链路如下："><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2026-06-01T00:00:00+00:00"><meta property="article:modified_time" content="2026-06-01T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="业务架构：需求传递之困"><meta name=twitter:description content="业务架构：需求传递之困 1. 业务模式 某科技公司的业务模式可以概括为：以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付。
+其产品形态包含四个层次：
+硬件：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。 软件：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。 AI：部署于设备端的推理服务。 云平台：运行于运营商基础设施，支撑业务运营。 客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。
+战略背景：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着合作伙伴既是销售通道，也是需求入口。
+2. 利益相关者 基于 TOGAF 利益相关者分析框架，识别出以下关键角色：
+利益相关者 类型 参与环节 客户（大型企业/政府） 外部 提出需求 → 验收交付 合作伙伴（经销商、系统集成商） 外部 需求转交 → 现场交付 产品人员 内部 接收需求 → 拆分需求 PM 内部 需求拆解 → 任务分配 → 验收 研发团队 内部 接收任务 → 实现 测试团队 内部 测试验证 AI 团队 内部 AI 优化/定制（按需） 架构师 内部 重大方案评审（偶尔） 售前/技术支持 内部 需求阶段技术评估 供应链/采购 内部 硬件定制阶段 高管/决策层 内部 重大方案或资源调配 3. 核心业务流程 从客户需求到最终交付，业务链路如下："><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Blogs","item":"https://zhangli2946.github.io/blog/"},{"@type":"ListItem","position":3,"name":"业务架构：需求传递之困","item":"https://zhangli2946.github.io/blog/togaf-business-architecture/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"业务架构：需求传递之困","name":"业务架构：需求传递之困","description":"业务架构：需求传递之困 1. 业务模式 某科技公司的业务模式可以概括为：以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付。\n其产品形态包含四个层次：\n硬件：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。 软件：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。 AI：部署于设备端的推理服务。 云平台：运行于运营商基础设施，支撑业务运营。 客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。\n战略背景：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着合作伙伴既是销售通道，也是需求入口。\n2. 利益相关者 基于 TOGAF 利益相关者分析框架，识别出以下关键角色：\n利益相关者 类型 参与环节 客户（大型企业/政府） 外部 提出需求 → 验收交付 合作伙伴（经销商、系统集成商） 外部 需求转交 → 现场交付 产品人员 内部 接收需求 → 拆分需求 PM 内部 需求拆解 → 任务分配 → 验收 研发团队 内部 接收任务 → 实现 测试团队 内部 测试验证 AI 团队 内部 AI 优化/定制（按需） 架构师 内部 重大方案评审（偶尔） 售前/技术支持 内部 需求阶段技术评估 供应链/采购 内部 硬件定制阶段 高管/决策层 内部 重大方案或资源调配 3. 核心业务流程 从客户需求到最终交付，业务链路如下：\n","keywords":[],"articleBody":"业务架构：需求传递之困 1. 业务模式 某科技公司的业务模式可以概括为：以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付。\n其产品形态包含四个层次：\n硬件：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。 软件：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。 AI：部署于设备端的推理服务。 云平台：运行于运营商基础设施，支撑业务运营。 客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。\n战略背景：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着合作伙伴既是销售通道，也是需求入口。\n2. 利益相关者 基于 TOGAF 利益相关者分析框架，识别出以下关键角色：\n利益相关者 类型 参与环节 客户（大型企业/政府） 外部 提出需求 → 验收交付 合作伙伴（经销商、系统集成商） 外部 需求转交 → 现场交付 产品人员 内部 接收需求 → 拆分需求 PM 内部 需求拆解 → 任务分配 → 验收 研发团队 内部 接收任务 → 实现 测试团队 内部 测试验证 AI 团队 内部 AI 优化/定制（按需） 架构师 内部 重大方案评审（偶尔） 售前/技术支持 内部 需求阶段技术评估 供应链/采购 内部 硬件定制阶段 高管/决策层 内部 重大方案或资源调配 3. 核心业务流程 从客户需求到最终交付，业务链路如下：\n客户需求 ↓ 合作伙伴（销售角色，收集需求） ↓ 公司产品人员（接收并汇总需求） ↓ 产品 + PM（共同拆解需求，口头传递） ↓ 研发团队（进行硬件移植和软件裁剪） ↓ 解决方案交付 ↓ 合作伙伴 → 客户 这一流程中，产品人员扮演着客户与合作伙伴的需求收集枢纽角色，在公司内部与 PM 协作完成需求拆解。拆解后的需求以口头传递为主流方式进入研发环节。\n4. 需求传递机制 基于访谈，需求传递的实际运作如下：\n4.1 需求入口：合作伙伴 → 产品 接收形式：拜访、电话、会议，以口头沟通为主，少部分有邮件记录 信息质量：合作伙伴作为经销商/系统集成商，传递的需求描述往往\"非常单薄\" 存储位置：口头传达，少部分邮件散落在个人邮箱，无统一归档 4.2 需求拆解：产品 → PM 拆解方式：无标准模板或 PRD，依赖产品人员的个人经验进行口头拆解 输出物：无结构化文档，无用户故事，无功能清单 4.3 任务分配：PM → 研发 传递方式：口头交代，无书面任务单 评估机制：无工时评估，无资源确认 优先级规则：由 PM 直接指定，无正式排期流程 4.4 信息格式与可追溯性 信息类型 当前格式 可追溯性 需求规格 口头约定 不可追溯 硬件配置 口头约定 不可追溯 交付时间节点 口头传递 不可追溯 测试报告 文件传递 可追溯 设计文档 内容管理平台 部分可追溯 5. 组织架构与职责 公司组织扁平化，与业务运作直接相关的板块包括：\n研发板块\n系统能力平台：AI 应用、存储、网络、安全、混合云、IoT 网桥、新平台底座（硬件与 OS）、功能部件产品化、第三方应用管理、图片与媒体业务、互联网数据聚合等 大客户产品一组：产品、前端、后端、测试 大客户产品二组：产品、前端、后端、测试 研发管理办公室 平台板块\n供应链 产品组 设计组 技术支持服务组 市场拓展组 行政/人事/财务 访谈补充：研发管理办公室的核心职责是协调资源，参与需求评审和资源调配，但不直接介入日常需求拆解。大客户产品一组和二组无明确的行业/区域划分，而是根据项目负载和人员能力动态分配。\n角色职责分工 职责领域 产品人员 PM 需求沟通与收集 主导 不参与 需求拆解与定义 主导 兼任部分 任务分配与排期 不参与 主导 人力协调 不参与 主导 验收 参与 参与 6. 业务目标 公司当前的业务目标以定性描述为主：\n目标维度 具体目标 设备侧业务 支持客户完成软硬体系的交付，满足合作伙伴的交付目标 云端业务 保持自营业务的服务质量，支持合作伙伴和甲方的方案云端建设 基线演进 软件基线持续迭代，支撑更多硬件平台和客户场景 7. 异常与分支场景 7.1 需求不可行 环节 现状 发现时机 研发阶段（已投入开发后） 决策人 商务 回退路径 口头通知 PM → 口头通知产品 → 口头通知合作伙伴 客户沟通 无明确责任人 7.2 交付后缺陷 反馈渠道：口头通知，无工单系统 处理流程：无 SLA，无优先级分级 根因分析：无复盘机制 7.3 需求变更 变更频率：频繁（具体次数无记录） 评估机制：无重新评估工期和影响范围的正式流程 记录状态：无变更记录 8. 交付周期 交付周期：平均 3-5 个月。\n存在\"在不明确需求的情况下先推进部分任务\"的做法。\n9. 工具与系统使用现状 工具 部署状态 实际使用 Confluence 已部署 需求管理未使用 Jira 已部署 需求管理未使用 GitLab 已部署 代码管理使用 测试平台 已部署 测试流程使用 10. 治理机制现状 治理维度 现状 业务复盘 几乎没有 流程回顾 无 知识沉淀 无 绩效度量 无定量指标 ","wordCount":"252","inLanguage":"en","datePublished":"2026-06-01T00:00:00Z","dateModified":"2026-06-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://zhangli2946.github.io/blog/togaf-business-architecture/"},"publisher":{"@type":"Organization","name":"li 的 Blog","logo":{"@type":"ImageObject","url":"https://zhangli2946.github.io/favicon.ico"}}}</script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://zhangli2946.github.io/ accesskey=h title="li 的 Blog (Alt + H)">li 的 Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://zhangli2946.github.io/ title=Home><span>Home</span></a></li><li><a href=https://zhangli2946.github.io/blog/ title=Blog><span>Blog</span></a></li><li><a href=https://zhangli2946.github.io/about/ title=About><span>About</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">业务架构：需求传递之困</h1><div class=post-meta><span title='2026-06-01 00:00:00 +0000 UTC'>June 1, 2026</span></div></header><div class="post-content md-content"><h1 id=业务架构需求传递之困>业务架构：需求传递之困<a hidden class=anchor aria-hidden=true href=#业务架构需求传递之困>#</a></h1><hr><h2 id=1-业务模式>1. 业务模式<a hidden class=anchor aria-hidden=true href=#1-业务模式>#</a></h2><p>某科技公司的业务模式可以概括为：<strong>以软件基线为核心，按客户需求进行定制，通过合作伙伴完成交付</strong>。</p><p>其产品形态包含四个层次：</p><ul><li><strong>硬件</strong>：嵌入式设备（NAS 基型），支持容器化（ARM/x86）以及 RK3588、RK3576 等硬件平台。</li><li><strong>软件</strong>：微服务化的软件基线，按能力平台组织，每个能力由多个服务组合提供。</li><li><strong>AI</strong>：部署于设备端的推理服务。</li><li><strong>云平台</strong>：运行于运营商基础设施，支撑业务运营。</li></ul><p>客户类型为大型企业。公司不直接面向客户销售，而是通过合作伙伴渠道完成销售环节。</p><blockquote><p><strong>战略背景</strong>：不直接面向客户销售是初创阶段的战略选择——公司需要利用合作伙伴的客户纽带关系切入市场，建立与政府和大型组织的合作关系。面向个人消费者是非常远期的计划。这一模式意味着<strong>合作伙伴既是销售通道，也是需求入口</strong>。</p></blockquote><hr><h2 id=2-利益相关者>2. 利益相关者<a hidden class=anchor aria-hidden=true href=#2-利益相关者>#</a></h2><p>基于 TOGAF 利益相关者分析框架，识别出以下关键角色：</p><table><thead><tr><th>利益相关者</th><th>类型</th><th>参与环节</th></tr></thead><tbody><tr><td>客户（大型企业/政府）</td><td>外部</td><td>提出需求 → 验收交付</td></tr><tr><td>合作伙伴（经销商、系统集成商）</td><td>外部</td><td>需求转交 → 现场交付</td></tr><tr><td>产品人员</td><td>内部</td><td>接收需求 → 拆分需求</td></tr><tr><td>PM</td><td>内部</td><td>需求拆解 → 任务分配 → 验收</td></tr><tr><td>研发团队</td><td>内部</td><td>接收任务 → 实现</td></tr><tr><td>测试团队</td><td>内部</td><td>测试验证</td></tr><tr><td>AI 团队</td><td>内部</td><td>AI 优化/定制（按需）</td></tr><tr><td>架构师</td><td>内部</td><td>重大方案评审（偶尔）</td></tr><tr><td>售前/技术支持</td><td>内部</td><td>需求阶段技术评估</td></tr><tr><td>供应链/采购</td><td>内部</td><td>硬件定制阶段</td></tr><tr><td>高管/决策层</td><td>内部</td><td>重大方案或资源调配</td></tr></tbody></table><hr><h2 id=3-核心业务流程>3. 核心业务流程<a hidden class=anchor aria-hidden=true href=#3-核心业务流程>#</a></h2><p>从客户需求到最终交付，业务链路如下：</p><pre tabindex=0><code>客户需求
+    ↓
+合作伙伴（销售角色，收集需求）
+    ↓
+公司产品人员（接收并汇总需求）
+    ↓
+产品 + PM（共同拆解需求，口头传递）
+    ↓
+研发团队（进行硬件移植和软件裁剪）
+    ↓
+解决方案交付
+    ↓
+合作伙伴 → 客户
+</code></pre><p>这一流程中，产品人员扮演着客户与合作伙伴的需求收集枢纽角色，在公司内部与 PM 协作完成需求拆解。拆解后的需求以<strong>口头传递</strong>为主流方式进入研发环节。</p><hr><h2 id=4-需求传递机制>4. 需求传递机制<a hidden class=anchor aria-hidden=true href=#4-需求传递机制>#</a></h2><p>基于访谈，需求传递的实际运作如下：</p><h3 id=41-需求入口合作伙伴--产品>4.1 需求入口：合作伙伴 → 产品<a hidden class=anchor aria-hidden=true href=#41-需求入口合作伙伴--产品>#</a></h3><ul><li><strong>接收形式</strong>：拜访、电话、会议，以口头沟通为主，少部分有邮件记录</li><li><strong>信息质量</strong>：合作伙伴作为经销商/系统集成商，传递的需求描述往往"非常单薄"</li><li><strong>存储位置</strong>：口头传达，少部分邮件散落在个人邮箱，无统一归档</li></ul><h3 id=42-需求拆解产品--pm>4.2 需求拆解：产品 → PM<a hidden class=anchor aria-hidden=true href=#42-需求拆解产品--pm>#</a></h3><ul><li><strong>拆解方式</strong>：无标准模板或 PRD，依赖产品人员的个人经验进行口头拆解</li><li><strong>输出物</strong>：无结构化文档，无用户故事，无功能清单</li></ul><h3 id=43-任务分配pm--研发>4.3 任务分配：PM → 研发<a hidden class=anchor aria-hidden=true href=#43-任务分配pm--研发>#</a></h3><ul><li><strong>传递方式</strong>：口头交代，无书面任务单</li><li><strong>评估机制</strong>：无工时评估，无资源确认</li><li><strong>优先级规则</strong>：由 PM 直接指定，无正式排期流程</li></ul><h3 id=44-信息格式与可追溯性>4.4 信息格式与可追溯性<a hidden class=anchor aria-hidden=true href=#44-信息格式与可追溯性>#</a></h3><table><thead><tr><th>信息类型</th><th>当前格式</th><th>可追溯性</th></tr></thead><tbody><tr><td>需求规格</td><td>口头约定</td><td>不可追溯</td></tr><tr><td>硬件配置</td><td>口头约定</td><td>不可追溯</td></tr><tr><td>交付时间节点</td><td>口头传递</td><td>不可追溯</td></tr><tr><td>测试报告</td><td>文件传递</td><td>可追溯</td></tr><tr><td>设计文档</td><td>内容管理平台</td><td>部分可追溯</td></tr></tbody></table><hr><h2 id=5-组织架构与职责>5. 组织架构与职责<a hidden class=anchor aria-hidden=true href=#5-组织架构与职责>#</a></h2><p>公司组织扁平化，与业务运作直接相关的板块包括：</p><p><strong>研发板块</strong></p><ul><li>系统能力平台：AI 应用、存储、网络、安全、混合云、IoT 网桥、新平台底座（硬件与 OS）、功能部件产品化、第三方应用管理、图片与媒体业务、互联网数据聚合等</li><li>大客户产品一组：产品、前端、后端、测试</li><li>大客户产品二组：产品、前端、后端、测试</li><li>研发管理办公室</li></ul><p><strong>平台板块</strong></p><ul><li>供应链</li><li>产品组</li><li>设计组</li><li>技术支持服务组</li><li>市场拓展组</li><li>行政/人事/财务</li></ul><blockquote><p><strong>访谈补充</strong>：研发管理办公室的核心职责是<strong>协调资源</strong>，参与需求评审和资源调配，但不直接介入日常需求拆解。大客户产品一组和二组无明确的行业/区域划分，而是根据项目负载和人员能力动态分配。</p></blockquote><h3 id=角色职责分工>角色职责分工<a hidden class=anchor aria-hidden=true href=#角色职责分工>#</a></h3><table><thead><tr><th>职责领域</th><th>产品人员</th><th>PM</th></tr></thead><tbody><tr><td>需求沟通与收集</td><td>主导</td><td>不参与</td></tr><tr><td>需求拆解与定义</td><td>主导</td><td>兼任部分</td></tr><tr><td>任务分配与排期</td><td>不参与</td><td>主导</td></tr><tr><td>人力协调</td><td>不参与</td><td>主导</td></tr><tr><td>验收</td><td>参与</td><td>参与</td></tr></tbody></table><hr><h2 id=6-业务目标>6. 业务目标<a hidden class=anchor aria-hidden=true href=#6-业务目标>#</a></h2><p>公司当前的业务目标以定性描述为主：</p><table><thead><tr><th>目标维度</th><th>具体目标</th></tr></thead><tbody><tr><td>设备侧业务</td><td>支持客户完成软硬体系的交付，满足合作伙伴的交付目标</td></tr><tr><td>云端业务</td><td>保持自营业务的服务质量，支持合作伙伴和甲方的方案云端建设</td></tr><tr><td>基线演进</td><td>软件基线持续迭代，支撑更多硬件平台和客户场景</td></tr></tbody></table><hr><h2 id=7-异常与分支场景>7. 异常与分支场景<a hidden class=anchor aria-hidden=true href=#7-异常与分支场景>#</a></h2><h3 id=71-需求不可行>7.1 需求不可行<a hidden class=anchor aria-hidden=true href=#71-需求不可行>#</a></h3><table><thead><tr><th>环节</th><th>现状</th></tr></thead><tbody><tr><td>发现时机</td><td>研发阶段（已投入开发后）</td></tr><tr><td>决策人</td><td>商务</td></tr><tr><td>回退路径</td><td>口头通知 PM → 口头通知产品 → 口头通知合作伙伴</td></tr><tr><td>客户沟通</td><td>无明确责任人</td></tr></tbody></table><h3 id=72-交付后缺陷>7.2 交付后缺陷<a hidden class=anchor aria-hidden=true href=#72-交付后缺陷>#</a></h3><ul><li><strong>反馈渠道</strong>：口头通知，无工单系统</li><li><strong>处理流程</strong>：无 SLA，无优先级分级</li><li><strong>根因分析</strong>：无复盘机制</li></ul><h3 id=73-需求变更>7.3 需求变更<a hidden class=anchor aria-hidden=true href=#73-需求变更>#</a></h3><ul><li><strong>变更频率</strong>：频繁（具体次数无记录）</li><li><strong>评估机制</strong>：无重新评估工期和影响范围的正式流程</li><li><strong>记录状态</strong>：无变更记录</li></ul><hr><h2 id=8-交付周期>8. 交付周期<a hidden class=anchor aria-hidden=true href=#8-交付周期>#</a></h2><p><strong>交付周期</strong>：平均 3-5 个月。</p><p>存在"在不明确需求的情况下先推进部分任务"的做法。</p><hr><h2 id=9-工具与系统使用现状>9. 工具与系统使用现状<a hidden class=anchor aria-hidden=true href=#9-工具与系统使用现状>#</a></h2><table><thead><tr><th>工具</th><th>部署状态</th><th>实际使用</th></tr></thead><tbody><tr><td>Confluence</td><td>已部署</td><td>需求管理未使用</td></tr><tr><td>Jira</td><td>已部署</td><td>需求管理未使用</td></tr><tr><td>GitLab</td><td>已部署</td><td>代码管理使用</td></tr><tr><td>测试平台</td><td>已部署</td><td>测试流程使用</td></tr></tbody></table><hr><h2 id=10-治理机制现状>10. 治理机制现状<a hidden class=anchor aria-hidden=true href=#10-治理机制现状>#</a></h2><table><thead><tr><th>治理维度</th><th>现状</th></tr></thead><tbody><tr><td>业务复盘</td><td>几乎没有</td></tr><tr><td>流程回顾</td><td>无</td></tr><tr><td>知识沉淀</td><td>无</td></tr><tr><td>绩效度量</td><td>无定量指标</td></tr></tbody></table></div><footer class=post-footer><ul class=post-tags></ul></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://zhangli2946.github.io/>li 的 Blog</a></span> ·<div style="width:300px;margin:0 auto;padding:20px 0"><a target=_blank href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010802010694" style=display:inline-block;text-decoration:none;height:20px;line-height:20px><img src style=float:left><p style="float:left;height:20px;line-height:20px;margin:0 0 0 5px;color:#939393">浙公网安备 33010802010694号</p></a></div><span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script></body></html>
